@@ -63,6 +63,7 @@ export default function Followupage() {
     dispatch(getAllLostReason());
     dispatch(getAllProductService());
     dispatch(getAllLeadSource());
+    getStateByCountry(localDetails.country);
     if (localStorage.getItem("role") === "admin") {
       dispatch(getAllAgent());
     }
@@ -96,6 +97,7 @@ export default function Followupage() {
   };
 
   const getStateByCountry = (data) => {
+    
     dispatch(getStatebycountry(data));
   };
 
@@ -336,29 +338,46 @@ export default function Followupage() {
           {loading ? (
             <Loader />
           ) : (
-            <div className="panel-bodyess pt-3">
+            <div className="panel-bodyess pt-3 edit-followup">
               <div className="col-sm-12 pl-0">
                 <div className="panel panel-bd lobidrag lobipanel">
                   <div className="panel-heading">
                     <div className="row">
-                      <div className="col-12 col-md-6 col-xs-6">
-                        <div className="btn-group">
+
+                      <div className="col-4 col-md-8 col-xs-6">
+                        <div className="btn-group head-editfollowup">
                           <p>Followup</p>
                         </div>
                       </div>
 
-                      <div className="col-12 col-md-2 col-xs-2">
-                        <div className="form-group">
-                          <button
-                            className="button-wa pull-right "
-                            data-toggle="modal"
-                            data-target="#myModal"
-                          >
-                            {" "}
-                            Whatsapp
-                          </button>
+                      <div className="col-8 col-md-4 col-xs-6">
+                        <div className="row">
+                          <div className="col-6 col-md-6">
+                            <div className="form-group">
+                              <button
+                                className="btn-whapp"
+                                data-toggle="modal"
+                                data-target="#myModal"
+                              >
+                                {" "}
+                                Whatsapp
+                              </button>
+                            </div>
+                          </div>
+                          <div className="col-6 col-md-6">
+                            <div className="form-group">
+                              <button
+                                className="btn-bsms"
+                                data-toggle="modal"
+                                data-target="#myModal1"
+                              >
+                                Send SMS
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
+
 
                       <div id="myModal" class="modal fade" role="dialog">
                         <div className="modal-dialog">
@@ -430,17 +449,7 @@ export default function Followupage() {
                           </div>
                         </div>
                       </div>
-                      <div className="col-12 col-md-2 col-xs-2">
-                        <div className="form-group">
-                          <button
-                            className="button-57 pull-right"
-                            data-toggle="modal"
-                            data-target="#myModal1"
-                          >
-                            Send SMS
-                          </button>
-                        </div>
-                      </div>
+
                       <div id="myModal1" class="modal fade" role="dialog">
                         <div className="modal-dialog">
                           <div className="modal-content">
@@ -513,6 +522,8 @@ export default function Followupage() {
                       </div>
                     </div>
                   </div>
+
+
                   <div className="panel-body bg-white">
                     <div className="cards">
                       <div className="card-headers lead_fallow">
@@ -522,10 +533,10 @@ export default function Followupage() {
                               <div className="row">
                                 <div className="col-md-6 left-border">
                                   <div className="row bottoms-border">
-                                    <div className="col-md-4 col-xs-4">
+                                    <div className="col-md-4 col-xs-4 col-4">
                                       <lable>Full Name</lable>
                                     </div>
-                                    <div className="col-md-8 col-xs-8">
+                                    <div className="col-md-8 col-xs-8 col-8">
                                       <input
                                         type="hidden"
                                         name="lead_id"
@@ -541,28 +552,28 @@ export default function Followupage() {
                                   </div>
 
                                   <div className="row bottoms-border">
-                                    <div className="col-md-4 col-xs-4">
+                                    <div className="col-md-4 col-xs-4 col-4">
                                       <lable>Email Id</lable>
                                     </div>
-                                    <div className="col-md-8 col-xs-8">
+                                    <div className="col-md-8 col-xs-8 col-8">
                                       {localDetails.email_id || ""}
                                     </div>
                                   </div>
 
                                   <div className="row bottoms-border">
-                                    <div className="col-md-4 col-xs-4">
+                                    <div className="col-md-4 col-xs-4 col-4">
                                       <lable>Contact No.</lable>
                                     </div>
-                                    <div className="col-md-8 col-xs-8">
+                                    <div className="col-md-8 col-xs-8 col-8">
                                       {/* {foundObject?.contact_no} */}
                                       {localDetails.contact_no || ""}
                                     </div>
                                   </div>
                                   <div className="row bottoms-border">
-                                    <div className="col-md-4 col-xs-4">
+                                    <div className="col-md-4 col-xs-4 col-4">
                                       <lable>Service</lable>
                                     </div>
-                                    <div className="col-md-8 col-xs-8">
+                                    <div className="col-md-8 col-xs-8 col-8">
                                       {
                                         foundObject?.service_details[0]
                                           ?.product_service_name
@@ -570,10 +581,10 @@ export default function Followupage() {
                                     </div>
                                   </div>
                                   <div className="row bottoms-border">
-                                    <div className="col-md-4 col-xs-4">
+                                    <div className="col-md-4 col-xs-4 col-4">
                                       <lable>Lead Source</lable>
                                     </div>
-                                    <div className="col-md-8 col-xs-8">
+                                    <div className="col-md-8 col-xs-8 col-8">
                                       {
                                         foundObject?.lead_source_details[0]
                                           ?.lead_source_name
@@ -581,10 +592,10 @@ export default function Followupage() {
                                     </div>
                                   </div>
                                   <div className="row bottoms-border none-border">
-                                    <div className="col-md-4 col-xs-4 pd-top">
+                                    <div className="col-md-4 col-xs-4 pd-top col-4">
                                       <lable>Agent Name </lable>
                                     </div>
-                                    <div className="col-md-8 col-xs-8">
+                                    <div className="col-md-8 col-xs-8 col-8">
                                       <select
                                         disabled={
                                           localStorage.getItem("role") ===
@@ -628,10 +639,10 @@ export default function Followupage() {
                                 </div>
                                 <div className="col-md-6">
                                   <div className="row status-bottom">
-                                    <div className="col-md-4 col-xs-4 pd-top">
+                                    <div className="col-md-4 col-xs-4 pd-top col-4">
                                       <lable>Status</lable>
                                     </div>
-                                    <div className="col-md-8 col-xs-8">
+                                    <div className="col-md-8 col-xs-8 col-8">
                                       <select
                                         onChange={setStatus}
                                         className="form-control"
@@ -707,10 +718,10 @@ export default function Followupage() {
                                     <>
                                       {" "}
                                       <div className="row status-bottom">
-                                        <div className="col-md-4 pd-top col-xs-4">
+                                        <div className="col-md-4 pd-top col-xs-4 col-4">
                                           Won Amount Of Lead
                                         </div>
-                                        <div className="col-md-8 col-xs-8">
+                                        <div className="col-md-8 col-xs-8 col-8">
                                           <input
                                             disabled
                                             value={
@@ -729,10 +740,10 @@ export default function Followupage() {
                                   )}
 
                                   <div className="row status-bottom">
-                                    <div className="col-md-4 pd-top col-xs-4">
+                                    <div className="col-md-4 pd-top col-xs-4 col-4">
                                       Followup
                                     </div>
-                                    <div className="col-md-8 col-xs-8">
+                                    <div className="col-md-8 col-xs-8 col-8">
                                       <input
                                         onChange={(e) =>
                                           setdata({
@@ -752,10 +763,10 @@ export default function Followupage() {
                                     </div>
                                   </div>
                                   <div className="row status-bottom">
-                                    <div className="col-md-4 pd-top col-xs-4">
+                                    <div className="col-md-4 pd-top col-xs-4 col-4">
                                       <lable>Description</lable>
                                     </div>
-                                    <div className="col-md-8 col-xs-8">
+                                    <div className="col-md-8 col-xs-8 col-8">
                                       <textarea
                                         required
                                         className="form-control text-areasss"
@@ -784,8 +795,8 @@ export default function Followupage() {
                                     </div>
                                   </div>
                                   <div className="row">
-                                    <div className="col-md-12">
-                                      <div className="add_calender text-center">
+                                    <div className="col-md-6 col-6">
+                                      <div className="add_calender">
                                         <div className="form-group">
                                           <label htmlFor="is_cal">
                                             Add to Calender &nbsp;&nbsp;
@@ -807,11 +818,23 @@ export default function Followupage() {
                                         </div>
                                       </div>
                                     </div>
+                                    <div className="col-md-6 col-xs-6 col-6">
+                                      <div className="max-widyhsSubmit">
+                                        <input
+                                          type="submit"
+                                          name="submit"
+                                          Value="Submit  "
+                                          className="btn btenss form-control btn-success"
+                                          autoComplete="off"
+                                          placeholder="Submit  "
+                                        />
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                            <div className="row">
+                            <div className="row d-none">
                               <div className="col-md-12 col-xs-12">
                                 <div className="max-widyhsSubmit">
                                   <input
@@ -828,8 +851,11 @@ export default function Followupage() {
                           </form>
                         </div>
                       </div>
-                      {/* Nav tabs */}
-                      <ul className="nav nav-tabs mobiltabs bottom-border">
+
+
+
+                     {/* Nav tabs */}
+                     <ul className="nav nav-tabs mobiltabs bottom-border">
                         <li className="">
                           <a
                             href="#tab6"
@@ -1227,7 +1253,7 @@ export default function Followupage() {
                                       </div>
                                     </div>
                                     <div className="row">
-                                      <div className="col-md-4 pd-top">
+                                      <div className="col-md-4 col-4 pd-top">
                                         <div className="form-group">
                                           {" "}
                                           <label htmlFor="country">
@@ -1235,7 +1261,7 @@ export default function Followupage() {
                                           </label>
                                         </div>
                                       </div>
-                                      <div className="col-md-8">
+                                      <div className="col-md-8 col-8">
                                         <select
                                           name="country"
                                           value={localDetails.country || ""}
@@ -1265,7 +1291,7 @@ export default function Followupage() {
                                       </div>
                                     </div>
                                     <div className="row">
-                                      <div className="col-md-4 pd-top">
+                                      <div className="col-md-4 col-4 pd-top">
                                         <div className="form-group">
                                           {" "}
                                           <label htmlFor="full_address">
@@ -1273,27 +1299,27 @@ export default function Followupage() {
                                           </label>
                                         </div>
                                       </div>
-                                      <div className="col-md-8 cardes">
+                                      <div className="col-md-8 col-8 cardes">
                                         <textarea
                                           name="full_address"
                                           cols={40}
                                           rows={3}
                                           id="full_address"
-                                          // value={localDetails.full_address || ''}
-                                          // onChange={(e) => setLocalDetails({ ...localDetails, full_address: e.target.value })}
+                                          value={localDetails.full_address || ''}
+                                          onChange={(e) => setLocalDetails({ ...localDetails, full_address: e.target.value })}
                                           className="form-control"
                                           defaultValue={""}
                                         />
                                       </div>
                                     </div>
                                     <div className="row">
-                                      <div className="col-md-4 pd-top">
+                                      <div className="col-md-4 col-4 pd-top">
                                         <div className="form-group">
                                           {" "}
                                           <label htmlFor="state">State</label>
                                         </div>
                                       </div>
-                                      <div className="col-md-8">
+                                      <div className="col-md-8 col-8">
                                         <div className="form-group">
                                           <select
                                             name="state"
@@ -1332,8 +1358,8 @@ export default function Followupage() {
                                         Additional Information{" "}
                                       </div>
                                     </div>
-                                    <div className="row">
-                                      <div className="col-md-4 pd-top">
+                                    <div className="row" style={{marginBottom: 10}}>
+                                      <div className="col-md-4 col-4 pd-top">
                                         <div className="form-group">
                                           {" "}
                                           <label htmlFor="description">
@@ -1342,13 +1368,12 @@ export default function Followupage() {
                                         </div>
                                       </div>
                                       <div
-                                        className="col-md-8"
-                                        style={{ padding: 0 }}
+                                        className="col-md-8 col-8"
                                       >
                                         <textarea
                                           name="description"
                                           cols={40}
-                                          rows={3}
+                                          rows={2}
                                           value={localDetails.description || ""}
                                           onChange={(e) =>
                                             setLocalDetails({
@@ -1364,13 +1389,13 @@ export default function Followupage() {
                                     </div>
 
                                     <div className="row">
-                                      <div className="col-md-4 pd-top">
+                                      <div className="col-md-4 col-4 pd-top">
                                         <div className="form-group">
                                           {" "}
                                           <label htmlFor="city">City</label>
                                         </div>
                                       </div>
-                                      <div className="col-md-8">
+                                      <div className="col-md-8 col-8">
                                         <input
                                           type="text"
                                           name="city"
@@ -1390,7 +1415,7 @@ export default function Followupage() {
                                       </div>
                                     </div>
                                     <div className="row">
-                                      <div className="col-md-4 pd-top">
+                                      <div className="col-md-4 col-4 pd-top">
                                         <div className="form-group">
                                           {" "}
                                           <label htmlFor="pincode">
@@ -1398,7 +1423,7 @@ export default function Followupage() {
                                           </label>
                                         </div>
                                       </div>
-                                      <div className="col-md-8 cardese">
+                                      <div className="col-md-8 col-8 cardese">
                                         <input
                                           type="text"
                                           name="pincode"
@@ -1418,7 +1443,7 @@ export default function Followupage() {
                                       </div>
                                     </div>
                                     <div className="row d-none">
-                                      <div className="col-md-4 pd-top">
+                                      <div className="col-md-4 col-4 pd-top">
                                         <div className="form-group">
                                           <label htmlFor="assign_to_agent">
                                             Assign to agent
@@ -1426,7 +1451,7 @@ export default function Followupage() {
                                         </div>
                                       </div>
                                       <div
-                                        className="col-md-8 cardese"
+                                        className="col-md-8 col-8 cardese"
                                         style={{ padding: 0 }}
                                       >
                                         <select
@@ -1455,13 +1480,13 @@ export default function Followupage() {
                                       </div>
                                     </div>
                                     <div className="row d-none">
-                                      <div className="col-md-4 pd-top">
+                                      <div className="col-md-4 col-4 pd-top">
                                         <div className="form-group">
                                           <label htmlFor="status">Status</label>
                                         </div>
                                       </div>
                                       <div
-                                        className="col-md-8"
+                                        className="col-md-8 col-8"
                                         style={{ padding: 0 }}
                                       >
                                         <div className="form-group">
@@ -1770,6 +1795,7 @@ export default function Followupage() {
                           </div>
                         </div>
                       </div>
+
                     </div>
                   </div>
                 </div>

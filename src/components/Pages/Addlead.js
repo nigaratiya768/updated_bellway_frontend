@@ -74,7 +74,8 @@ function Addlead() {
       if (aaaa.payload.success == true) {
         toast.success(aaaa.payload.message);
         if (buttonValue === "save") {
-          navigate("/leads");
+          // navigate("/leads");
+          navigate("/Followupleads");
         }
       } else {
         toast.warn(aaaa.payload?.message);
@@ -89,7 +90,8 @@ function Addlead() {
       if (aaaa.payload.success == true) {
         toast.success(aaaa.payload.message);
         if (buttonValue === "save") {
-          navigate("/leads");
+          // navigate("/leads");
+          navigate("/Followupleads");
         }
       } else {
         toast.warn(aaaa.payload?.message);
@@ -142,7 +144,7 @@ function Addlead() {
     return <Loader />;
   }
 
-
+  const userRole = localStorage.getItem("role");
 
   return (
     <div>
@@ -156,7 +158,7 @@ function Addlead() {
                   <h4>Add Lead </h4>
                 </div>
 
-                <button
+                {/* <button
                   type="button"
                   style={{ float: "right" }}
                   className="btn btn-sm btn-primaryess"
@@ -167,21 +169,36 @@ function Addlead() {
                      <i className="fa fa-download" />
                     &nbsp; Import{" "}
                   </Link>
-                </button>
+                </button> */}
+
+              {(userRole === "admin" || userRole === "TeamLeader") && (
+                    <button
+                      type="button"
+                      style={{ float: "right" }}
+                      className="btn btn-sm btn-primaryess"
+                      data-toggle="modal"
+                      data-target="#custome"
+                    >
+                      <Link className="btn btnes exports" to="/import-lead">
+                        <i className="fa fa-download" />
+                        &nbsp; Import{" "}
+                      </Link>
+                    </button>
+                  )}
               </div>
 
               <div className="panel-body bg-white mt-4">
                 <form onSubmit={submitLead}>
                   <div className="row">
                     <input type="hidden" name="client_id" value={user_id} />
-                    <div className="col-md-6  mob-left-right col-xs-12">
+                    <div className="col-md-6 mob-left-right col-xs-12">
                       <div className="row">
-                        <div className="col-md-4 pd-top mobile-hids">
+                        <div className="col-md-4 pd-top mobile-hids col-4">
                           <label htmlFor="full_name">
                             Full Name <span className="text-danger">*</span>{" "}
                           </label>
                         </div>
-                        <div className="col-md-8 mob-left-right col-xs-12">
+                        <div className="col-md-8 mob-left-right col-xs-12 col-8">
                           <div className="form-group">
                             <input
                               type="text"
@@ -203,10 +220,10 @@ function Addlead() {
                     </div>
                     <div className="col-md-6   mob-left-right col-xs-12">
                       <div className="row">
-                        <div className="col-md-4 pd-top mobile-hids">
+                        <div className="col-md-4 pd-top mobile-hids col-4">
                           <label htmlFor="email_id">Email Id </label>
                         </div>
-                        <div className="col-md-8 mob-left-right col-xs-12">
+                        <div className="col-md-8 mob-left-right col-xs-12 col-8">
                           <div className="form-group">
                             <input
                               type="email"
@@ -227,10 +244,10 @@ function Addlead() {
                     </div>
                     <div className="col-md-6   mob-left-right col-xs-12">
                       <div className="row">
-                        <div className="col-md-4 pd-top mobile-hids">
+                        <div className="col-md-4 pd-top mobile-hids col-4">
                           <label htmlFor="lead_source">Lead Source </label>
                         </div>
-                        <div className="col-md-8 mob-left-right col-xs-12">
+                        <div className="col-md-8 mob-left-right col-xs-12 col-8">
                           <div className="form-group">
                             <select
                               name="lead_source"
@@ -262,12 +279,12 @@ function Addlead() {
                     </div>
                     <div className="col-md-6  mob-left-right col-xs-12">
                       <div className="row">
-                        <div className="col-md-4 pd-top mobile-hids">
+                        <div className="col-md-4 pd-top mobile-hids col-4">
                           <label htmlFor="contact_no">
                             Contact No <span className="text-danger">*</span>{" "}
                           </label>
                         </div>
-                        <div className="col-md-8 mob-left-right col-xs-12">
+                        <div className="col-md-8 mob-left-right col-xs-12 col-8">
                           <div className="form-group">
                             <input
                               type="number"
@@ -288,10 +305,10 @@ function Addlead() {
 
                     <div className="col-md-6  mob-left-right col-xs-12">
                       <div className="row">
-                        <div className="col-md-4 pd-top mobile-hids">
+                        <div className="col-md-4 pd-top mobile-hids col-4">
                           <label htmlFor="service">Product & Service </label>
                         </div>
-                        <div className="col-md-8 mob-left-right col-xs-12">
+                        <div className="col-md-8 mob-left-right col-xs-12 col-8">
                           <div className="form-group">
                             <select
                               name="service"
@@ -319,10 +336,10 @@ function Addlead() {
                           </div>
                         </div>
 
-                        <div className="col-md-4 pd-top mobile-hids">
+                        <div className="col-md-4 pd-top mobile-hids col-4">
                           <label htmlFor="description">Description </label>
                         </div>
-                        <div className="col-md-8 mob-left-right col-xs-12  form-group">
+                        <div className="col-md-8 mob-left-right col-xs-12 col-8  form-group">
                           <textarea
                             name="description"
                             cols={40}
@@ -341,10 +358,10 @@ function Addlead() {
                     </div>
                     <div className="col-md-6  mob-left-right col-xs-12">
                       <div className="row">
-                        <div className="col-md-4 pd-top mobile-hids">
+                        <div className="col-md-4 pd-top mobile-hids col-4">
                           <label htmlFor="followup">Followup Date</label>
                         </div>
-                        <div className="col-md-8 mob-left-right col-xs-12  form-group">
+                        <div className="col-md-8 mob-left-right col-xs-12 col-8  form-group">
                           <input
                             type="datetime-local"
                             name="followup_date"
@@ -363,12 +380,12 @@ function Addlead() {
 
                         {localStorage.getItem("role") == "admin" ? (
                           <>
-                            <div className="col-md-4 pd-top mobile-hids">
+                            <div className="col-md-4 col-4 pd-top mobile-hids">
                               <label htmlFor="assign_to_agent">
                                 Assign to agent
                               </label>
                             </div>
-                            <div className="col-md-8 mob-left-right col-xs-12  form-group">
+                            <div className="col-md-8 mob-left-right col-xs-12 col-8 form-group">
                               <select
                                 name="assign_to_agent"
                                 onChange={(e) =>
@@ -395,12 +412,12 @@ function Addlead() {
                           </>
                         ) : localStorage.getItem("role") == "TeamLeader"?(
                           <>
-                            <div className="col-md-4 pd-top mobile-hids">
+                            <div className="col-md-4 col-4 pd-top mobile-hids">
                               <label htmlFor="assign_to_agent">
                                 Assign to agent
                               </label>
                             </div>
-                            <div className="col-md-8 mob-left-right col-xs-12  form-group">
+                            <div className="col-md-8 mob-left-right col-xs-12 col-8 form-group">
                               <select
                                 name="assign_to_agent"
                                 onChange={(e) =>
@@ -427,12 +444,12 @@ function Addlead() {
                           </>
                          ):("")}
 
-                        <div className="col-md-4 pd-top mobile-hids">
+                        <div className="col-md-4 col-4 pd-top mobile-hids">
                           <label htmlFor="status">
                             Status <span className="text-danger">*</span>{" "}
                           </label>
                         </div>
-                        <div className="col-md-8 mob-left-right col-xs-12 form-group">
+                        <div className="col-md-8 mob-left-right col-xs-12 col-8 form-group">
                           <select
                             name="status"
                             className="form-control"
@@ -517,18 +534,18 @@ function Addlead() {
                       >
                         <div className="card-body">
                           <div className="row">
-                            <div className="col-sm-6   mob-left-right col-xs-12">
+                            <div className="col-sm-6   mob-left-right col-xs-12 ">
                               <div className="row">
                                 <div className="col-12 address_information">
                                   {/* <div className="address-sec"> Address </div> */}
                                 </div>
 
-                                <div className="col-md-4 pd-top mobile-hids">
+                                <div className="col-md-4 pd-top mobile-hids col-4">
                                   <label htmlFor="full_address">
                                     Full Address{" "}
                                   </label>
                                 </div>
-                                <div className="col-md-8 mob-left-right col-xs-12  form-group">
+                                <div className="col-md-8 mob-left-right col-xs-12 col-8 form-group">
                                   <textarea
                                     name="full_address"
                                     cols={40}
@@ -544,10 +561,10 @@ function Addlead() {
                                   <span className="text-danger ferror"> </span>{" "}
                                 </div>
 
-                                <div className="col-md-4 pd-top mobile-hids">
+                                <div className="col-md-4 col-4 pd-top mobile-hids">
                                   <label htmlFor="country">Country </label>
                                 </div>
-                                <div className="col-md-8 mob-left-right col-xs-12  form-group">
+                                <div className="col-md-8 mob-left-right col-xs-12 col-8 form-group">
                                   <select
                                     name="country"
                                     onChange={handleInputChange}
@@ -569,10 +586,10 @@ function Addlead() {
                                   <span className="text-danger ferror"> </span>{" "}
                                 </div>
 
-                                <div className="col-md-4 pd-top mobile-hids">
-                                  <label htmlFor="state">State </label>
+                                <div className="col-md-4 col-4 pd-top mobile-hids">
+                                  <label htmlFor="state">Stateee </label>
                                 </div>
-                                <div className="col-md-8 mob-left-right col-xs-12  form-group">
+                                <div className="col-md-8 mob-left-right col-xs-12 col-8 form-group">
                                   <select
                                     name="state"
                                     onChange={(e) =>
@@ -596,10 +613,10 @@ function Addlead() {
                                   </select>
                                   <span className="text-danger ferror"> </span>{" "}
                                 </div>
-                                <div className="col-md-4 pd-top mobile-hids">
+                                <div className="col-md-4 col-4 pd-top mobile-hids">
                                   <label htmlFor="city">City </label>
                                 </div>
-                                <div className="col-md-8 mob-left-right col-xs-12  form-group">
+                                <div className="col-md-8 mob-left-right col-xs-12 col-8 form-group">
                                   <input
                                     type="text"
                                     name="city"
@@ -629,10 +646,10 @@ function Addlead() {
                               </div>
 
                               <div className="row">
-                                <div className="col-md-4 pd-top mobile-hids">
+                                <div className="col-md-4 col-4 pd-top mobile-hids">
                                   <label htmlFor="website">Website </label>
                                 </div>
-                                <div className="col-md-8 mob-left-right col-xs-12">
+                                <div className="col-md-8 mob-left-right col-xs-12 col-8">
                                   <div className="form-group">
                                     <input
                                       type="text"
@@ -656,12 +673,12 @@ function Addlead() {
                               </div>
 
                               <div className="row">
-                                <div className="col-md-4 pd-top mobile-hids">
+                                <div className="col-md-4 pd-top mobile-hids col-4">
                                   <label htmlFor="company_name">
                                     Company Name{" "}
                                   </label>
                                 </div>
-                                <div className="col-md-8 mob-left-right col-xs-12">
+                                <div className="col-md-8 mob-left-right col-xs-12 col-8">
                                   <div className="form-group">
                                     <input
                                       type="text"
@@ -683,10 +700,10 @@ function Addlead() {
                                   </div>
                                 </div>
 
-                                <div className="col-md-4 pd-top mobile-hids">
+                                <div className="col-md-4 col-4 pd-top mobile-hids">
                                   <label htmlFor="lead_cost">Lead Cost </label>
                                 </div>
-                                <div className="col-md-8 mob-left-right col-xs-12">
+                                <div className="col-md-8 mob-left-right col-xs-12 col-8">
                                   <div className="form-group">
                                     <input
                                       type="number"
@@ -708,12 +725,12 @@ function Addlead() {
                                   </div>
                                 </div>
 
-                                <div className="col-md-4 pd-top mobile-hids">
+                                <div className="col-md-4 col-4 pd-top mobile-hids">
                                   <label htmlFor="alternative_no">
                                     Alternative No{" "}
                                   </label>
                                 </div>
-                                <div className="col-md-8 mob-left-right col-xs-12">
+                                <div className="col-md-8 mob-left-right col-xs-12 col-8">
                                   <div className="form-group">
                                     <input
                                       type="number"
@@ -735,10 +752,10 @@ function Addlead() {
                                     </span>{" "}
                                   </div>
                                 </div>
-                                <div className="col-md-4 pd-top mobile-hids">
+                                <div className="col-md-4 col-4 pd-top mobile-hids">
                                   <label htmlFor="pincode">Pincode </label>
                                 </div>
-                                <div className="col-md-8 mob-left-right col-xs-12  form-group">
+                                <div className="col-md-8 mob-left-right col-xs-12 col-8  form-group">
                                   <input
                                     type="number"
                                     name="pincode"

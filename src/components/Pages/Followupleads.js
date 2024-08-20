@@ -74,7 +74,7 @@ function Followupleads() {
                               <p>Bulk Action</p>
                             </div>
                           </div>
-                          <div className="col-md-4 col-sm-3 col-xs-12">
+                          <div className="col-md-4 col-sm-3 col-xs-5 col-5 ex-g">
                             <select className="form-control"
                               onChange={e => setLeadStatus({ ...LeadStatus, status: e.target.value })}
                               name="status" id="status" required >
@@ -88,7 +88,7 @@ function Followupleads() {
                               })}
                             </select>
                           </div>
-                          <div className="col-md-3 col-sm-3 col-xs-12">
+                          <div className="col-md-3 col-sm-3 col-xs-4 col-4 ex-g">
                             <select className="form-control"
                               onChange={e => setLeadagent({ ...Leadagent, agent: e.target.value })}
                               name="agent" id="agent" required >
@@ -103,7 +103,7 @@ function Followupleads() {
                               })}
                             </select>
                           </div>
-                          <div className="col-md-2 col-sm-2 col-xs-12 pl-0">
+                          <div className="col-md-2 col-sm-2 col-xs-3 col-3 pl-0 ex-g">
                             <input type="submit" className="button-57" defaultValue="Submit" />
                           </div>
                         </div>
@@ -114,14 +114,14 @@ function Followupleads() {
                 <div className="col-md-5 col-xs-12">
                   <div className="advfilter-wrap">
                     <div className="row">
-                      <div className="col-md-6 col-sm-6 mobil-nns col-xs-6">
+                      <div className="col-md-6 col-sm-6 mobil-nns col-xs-6 col-6">
                         <div>
                           <button className="btn-advf" onClick={advanceserch}>
                             <i class="fa fa-search" aria-hidden="true"></i>
                             &nbsp;  Advance Filter </button>
                         </div>
                       </div>
-                      <div className="col-md-6 col-sm-6 col-xs-6">
+                      <div className="col-md-6 col-sm-6 col-xs-6 col-6">
                         <div>
                           <Link className="btn-advf" to="/Addlead"> <i className="fa fa-plus" />&nbsp;  Add Lead </Link>
                         </div>

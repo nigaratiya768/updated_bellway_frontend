@@ -572,11 +572,11 @@ export const Importedleadstable = ({ sendDataToParent, dataFromParent }) => {
   return (
     <div>
       <div className="row " style={{ display: dataFromParent }}>
-        <div className="col-md-12 advS">
+        <div className="advS">
           <form onSubmit={AdvanceSerch}>
             <div className="advfilter-wrap-box">
               <div className="row justify-content-md-center">
-                <div className="col-md-3 ">
+                <div className="col-md-3 col-6">
                   <div className="form-group">
                     <select
                       className="form-control"
@@ -594,7 +594,7 @@ export const Importedleadstable = ({ sendDataToParent, dataFromParent }) => {
                     </select>
                   </div>
                 </div>
-                <div className="col-md-3">
+                <div className="col-md-3 col-6">
                   <div className="form-group">
                     <select
                       className="form-control"
@@ -613,7 +613,7 @@ export const Importedleadstable = ({ sendDataToParent, dataFromParent }) => {
                     </select>
                   </div>
                 </div>
-                <div className="col-md-3">
+                <div className="col-md-3 col-6">
                   <div className="form-group">
                     <input
                       type="date"
@@ -626,7 +626,7 @@ export const Importedleadstable = ({ sendDataToParent, dataFromParent }) => {
                     />
                   </div>
                 </div>
-                <div className="col-md-3">
+                <div className="col-md-3 col-6">
                   <div className="form-group">
                     <input
                       type="date"
@@ -640,7 +640,7 @@ export const Importedleadstable = ({ sendDataToParent, dataFromParent }) => {
                   </div>
                 </div>
 
-                <div className="col-md-3">
+                <div className="col-md-3 col-6">
                   <div className="form-group">
                     <button
                       type="submit"
@@ -650,7 +650,7 @@ export const Importedleadstable = ({ sendDataToParent, dataFromParent }) => {
                     </button>
                   </div>
                 </div>
-                <div className="col-md-3">
+                <div className="col-md-3 col-6">
                   <div className="form-group">
                     <button
                       onClick={Refresh}

@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import companyLogo from "./avatar5.png";
 function SideNav() {
   const location = useLocation();
-
+  const userRole = localStorage.getItem("role");
   const [activeItem, setActiveItem] = useState("home");
   const [activeParent, setActiveParent] = useState("home");
 
@@ -281,7 +281,9 @@ function SideNav() {
                         </li>
                       </ul>
                     </li>
+                    
                     {/* manage sms start */}
+                    {(userRole === "admin" || userRole === "TeamLeader") && (
                     <li className="nav-item">
                       <Link
                         to="#"
@@ -339,8 +341,12 @@ function SideNav() {
                         </li>
                       </ul>
                     </li>
+                    )}
+
                     {/* manage sms end */}
+
                     {/* manage Wtsp start */}
+                    {(userRole === "admin" || userRole === "TeamLeader") && (
                     <li className="nav-item">
                       <Link
                         to="#"
@@ -418,7 +424,9 @@ function SideNav() {
                   </li> */}
                       </ul>
                     </li>
+                    )}
                     {/* manage Wtsp end */}
+                    {(userRole === "admin" || userRole === "TeamLeader") && (
                     <li className="nav-item">
                       <Link
                         to="/UploadContent"
@@ -432,6 +440,8 @@ function SideNav() {
                         Contact's
                       </Link>
                     </li>
+                  )}
+
                     {/* Api  */}
                     <li className="nav-item">
                       <Link
