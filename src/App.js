@@ -54,6 +54,11 @@ import BusinessWA from "./components/Pages/BusinessWA";
 import Importedlead from "./components/Pages/Importedlead";
 import Newloginpage from "./components/Pages/Newloginpage";
 import Login from "./components/Login";
+import UploadContactsWhatsapp from "./components/Pages/UploadContactsWhatsapp";
+import UploadContactsSms from "./components/Pages/UploadContactsSms";
+import { isValidToken } from "./utils/util";
+import HotLeads from "./components/Pages/HotLead";
+import Approval from "./components/Pages/Approval";
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLogined, setIsLogined] = useState(false);
@@ -62,7 +67,7 @@ function App() {
     const checkToken = () => {
       try {
         const token = localStorage.getItem("token");
-        setIsLogined(Boolean(token));
+        setIsLogined(isValidToken(token));
       } catch (error) {
         console.error("Error reading token from localStorage:", error);
       } finally {
@@ -98,6 +103,9 @@ function App() {
                 ></Route>
                 <Route path="/Addlead" element={<Addlead />}></Route>
                 <Route path="/Leads" element={<Leads />}></Route>
+                <Route path="/hotlead" element={<HotLeads />}></Route>
+                <Route path="/approval" element={<Approval />}></Route>
+
                 <Route path="/importedlead" element={<Importedlead />}></Route>
 
                 <Route path="/GroupSms" element={<GroupSms />}></Route>
@@ -118,6 +126,14 @@ function App() {
 
                 <Route path="/UploadContent" element={<UploadData />}></Route>
                 <Route path="/BusinessWA" element={<BusinessWA />}></Route>
+                <Route
+                  path="/UploadContactsWhatsapp"
+                  element={<UploadContactsWhatsapp />}
+                ></Route>
+                <Route
+                  path="/UploadContactsSms"
+                  element={<UploadContactsSms />}
+                ></Route>
                 <Route
                   path="/UploadContent/:id"
                   element={<UploadDataDetails />}

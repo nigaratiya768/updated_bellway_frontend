@@ -1,7 +1,8 @@
 import React,{useState} from "react";
 import { Link } from "react-router-dom";
-import AllFollowupstableForActiveLeadForWtsp from "./AllFollowupstableForActiveLeadForWtsp";
-function ActiveLeadsWtsp() {
+import UploadContactsWhatsappTable from "./UploadContactsWhatsappTable";
+
+function UploadContactsWhatsapp() {
   const [none,setnone]=useState('block');
   const [leads, setLeadID] = useState([]);
   const advanceserch=()=>{  
@@ -43,7 +44,7 @@ function ActiveLeadsWtsp() {
          </div>
         <div className="pt-3">
           <div className="container pl-0">
-            <AllFollowupstableForActiveLeadForWtsp sendDataToParent={handleChildData}  dataFromParent={none}/>
+            <UploadContactsWhatsappTable sendDataToParent={handleChildData}  dataFromParent={none}/>
           </div>
         </div>
       </div>
@@ -55,4 +56,4 @@ function ActiveLeadsWtsp() {
 }
 
 
-export default ActiveLeadsWtsp;
+export default UploadContactsWhatsapp;

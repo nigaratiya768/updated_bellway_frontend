@@ -24,6 +24,26 @@ const DBuUrl = process.env.REACT_APP_DB_URL;
     }  
     
    }); 
+   export const insertIntoAnotherTable=createAsyncThunk("insertIntoAnotherTable",async(data,{rejectWithValue})=>{
+           
+    const responce=await fetch(`${apiUrl}/approved/`,{
+        method:"POST",
+        headers:{ 
+            "Content-Type":"application/json",    
+             "mongodb-url":DBuUrl,
+           }, 
+           body:JSON.stringify(data) 
+    })  
+    const result=await responce.json();
+    
+  if(result.success===true){  
+     
+     return result;
+}else{  
+    return rejectWithValue(result.message);
+}  
+
+}); 
  
 
    

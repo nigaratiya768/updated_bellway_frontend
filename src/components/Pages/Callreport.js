@@ -69,6 +69,10 @@ export default function Callreport() {
       dispatch(getAllAgentWithData({assign_to_agent:localStorage.getItem("user_id")}));
       getAllCallDetailsTeam();
     } 
+     if (localStorage.getItem("role") === "GroupLeader") {
+      dispatch(getAllAgentWithData({assign_to_agent:localStorage.getItem("user_id")}));
+      getAllCallDetailsTeam();
+    } 
     if(localStorage.getItem("role")==='user'){
       dispatch(getAllAgent({assign_to_agent:localStorage.getItem("user_id")}));
      }
@@ -218,7 +222,7 @@ export default function Callreport() {
                                           })
                                         }
                                       >
-                                        <option value="">
+                                        {/* <option value="">
                                           Select Employee
                                         </option>
 
@@ -228,7 +232,30 @@ export default function Callreport() {
                                               {agents.agent_name}
                                             </option>
                                           );
-                                        })}
+                                        })} */}
+                                        <option value="">Select Employee</option>
+
+                                          {agent?.agent?.map((agents, key) => {
+                                            // If the logged-in user is 'admin', only show 'GroupLeader' options
+                                            if (localStorage.getItem("role") === 'GroupLeader') {
+                                              
+                                                return (
+                                                  <option key={key} value={agents._id}>
+                                                    {agents.agent_name} ({agents.role})
+                                                  </option>
+                                                );
+                                              
+                                            } else {
+                                              // For non-admin roles, display all agents
+                                              return (
+                                                <option key={key} value={agents._id}>
+                                                  {agents.agent_name} ({agents.role})
+                                                </option>
+                                              );
+                                            }
+
+                                            return null; // Return null for non-GroupLeader agents when role is admin
+                                          })}
                                       </select>
                                     </div>
                                   </div>

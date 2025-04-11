@@ -12,11 +12,11 @@ function GroupSmsWtsp() {
             <div className="panel panel-bd lobidrag lobipanel">
              <div className="panel-body bg-white ">
                 <div className="row">
-                    <div className="col-xl-6 col-md-6" >
+                <div className="col-xl-4 col-md-4" >
                     <Link to="/ActiveLeadsWtsp">
-                         <div className="sms_headings">
+                    <div className="sms_headings">
                          <div className="card card-animate">
-                          <div className="card-body bd_bottom">
+                          <div className="card-body bd_bottom2">
                               <div className="align-items-center">
                               <div className="text-center overflow-hidden">
                               <div className="counter-icon bg-primary-gradient box-shadow-primary rounded-circle ms-auto mb-0"> 
@@ -32,7 +32,7 @@ function GroupSmsWtsp() {
                        </div>
                        </Link> 
                     </div>
-                    <div className="col-xl-6 col-md-6" >
+                    <div className="col-xl-4 col-md-4" >
                     <Link to="/AllsmsleadsWtsp">
                          <div className="sms_headings">
                          <div className="card card-animate">
@@ -53,8 +53,8 @@ function GroupSmsWtsp() {
                        </div>
                        </Link> 
                     </div>
-                    {/* <div className="col-xl-4 col-md-6 d-none" >
-                    <Link to="/UploadContent">
+                    <div className="col-xl-4 col-md-4" >
+                    <Link to="/UploadContactsWhatsapp">
                          <div className="sms_headings">
                          <div className="card card-animate">
                           <div className="card-body bd_bottom2">
@@ -63,7 +63,7 @@ function GroupSmsWtsp() {
                               <div className="counter-icon bg-primary-gradient box-shadow-primary rounded-circle ms-auto mb-0"> 
                               <i class="fa fa-file-code-o mb-5" aria-hidden="true"></i></div>
                                  <h5 className="mb-2 noSms">
-                                     Upload Content
+                                     Uploaded Contact's
                                     </h5>
                                 </div>
                               </div>
@@ -72,7 +72,7 @@ function GroupSmsWtsp() {
                          </div>
                        </div>
                        </Link> 
-                    </div> */}
+                    </div>
                      
                  </div>
                   

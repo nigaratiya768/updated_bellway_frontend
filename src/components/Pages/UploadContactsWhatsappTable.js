@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from "react";
-
 import Loader from "../Loader";
 import axios from "axios";
 import DataTable from "react-data-table-component";
-
-
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { toast } from "react-toastify";
-
 import { useDispatch, useSelector } from "react-redux";
 import { getAllAgent } from "../../features/agentSlice";
 import { getAllStatus } from "../../features/statusSlice";
 import { getHostingbydomain } from "../../features/licenceSlice";
 
-export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFromParent }) {
+export default function UploadContactsWhatsappTable({ sendDataToParent, dataFromParent }) {
   const dispatch = useDispatch();
   const apiUrl = process.env.REACT_APP_API_URL;
   const DBuUrl = process.env.REACT_APP_DB_URL;
@@ -32,75 +28,76 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
   };
   const getAllLead1 = async () => {
     try {
-      const responce = await axios.get(
-        `${apiUrl}/get_all_lead`,{
-          headers: {
-            "Content-Type": "application/json",
-            "mongodb-url":DBuUrl,
-          },
-        }
-      );
-      
+      const responce = await axios.get(`${apiUrl}/get_All_Lead_Followup`, {
+        headers: {
+          "Content-Type": "application/json",
+          "mongodb-url": DBuUrl,
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+
       setleads(responce?.data?.lead);
       setfilterleads(responce?.data?.lead);
     } catch (error) {
-      const message=await error?.response?.data?.message;
-      if(message=='Client must be connected before running operations' || message=='Internal Server Error'){
+      const message = await error?.response?.data?.message;
+      if (message == 'Client must be connected before running operations' || message == 'Internal Server Error') {
         getAllLead1();
       }
       console.log(error);
       setfilterleads();
     }
   };
-  
+
 
   const getAllLead2 = async (assign_to_agent) => {
     try {
       const responce = await axios.post(
-        `${apiUrl}/get_Leadby_agentid_with_status`,
-          {  
-             assign_to_agent, 
-             headers: {
-              "Content-Type": "application/json",
-              "mongodb-url":DBuUrl,
-            },
-          } 
-       );
-           
-      if(responce?.data?.success===true){ 
+        `${apiUrl}/get_Leadby_agentid_status`,
+        {
+          assign_to_agent,
+          headers: {
+            "Content-Type": "application/json",
+            "mongodb-url": DBuUrl,
+            Authorization: "Bearer " + localStorage.getItem("token"),
+
+          },
+        }
+      );
+
+      if (responce?.data?.success === true) {
         setstatus(responce?.data?.success)
-        setleads(responce?.data?.lead); 
+        setleads(responce?.data?.lead);
         setfilterleads(responce?.data?.lead);
       }
-      if(responce?.data?.success===false){
+      if (responce?.data?.success === false) {
         setstatus(responce?.data?.success)
-        setleads(responce?.data?.lead); 
+        setleads(responce?.data?.lead);
         setfilterleads(responce?.data?.lead);
       }
-     
-      
-    } catch (error) { 
-      const message=await error?.response?.data?.message;
-      if(message=='Client must be connected before running operations'){
+
+
+    } catch (error) {
+      const message = await error?.response?.data?.message;
+      if (message == 'Client must be connected before running operations') {
         getAllLead2(assign_to_agent);
       }
       console.log(error);
       setfilterleads();
     }
- };
+  };
 
 
 
   useEffect(() => {
-    var host=window.location.hostname;
+    var host = window.location.hostname;
     dispatch(getHostingbydomain(host));
-   if(localStorage.getItem("role")==='admin'){
-    getAllLead1();
-   }else{
-       getAllLead2(localStorage.getItem("user_id"));
-   }     
-          dispatch(getAllAgent());
-          dispatch(getAllStatus());
+    if (localStorage.getItem("role") === 'admin') {
+      getAllLead1();
+    } else {
+      getAllLead2(localStorage.getItem("user_id"));
+    }
+    dispatch(getAllAgent());
+    dispatch(getAllStatus());
   }, [localStorage.getItem("user_id")]);
 
   useEffect(() => {
@@ -212,10 +209,6 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
         return row[column.selector];
       })
     );
-
-
-
-
 
     doc.autoTable({
       head: [columns.map((column) => column.name)],
@@ -335,38 +328,36 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
     }
   }
   const [adSerch, setAdvanceSerch] = useState([]);
-  const AdvanceSerch1 = async (e) => {
-    e.preventDefault();
-    fetch(`${apiUrl}/getAdvanceFillter`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "mongodb-url": DBuUrl,
-            Authorization: "Bearer " + localStorage.getItem("token"),
+  // const AdvanceSerch = async (e) => {
+  //   e.preventDefault();
+  //   fetch(`${apiUrl}/getAdvanceFillter`, {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       "mongodb-url": DBuUrl,
+  //           Authorization: "Bearer " + localStorage.getItem("token"),
 
-      },
-      body: JSON.stringify(adSerch),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Response from server:", data);
-        setstatus(data?.success);
-        setleads(data?.lead);
-        setfilterleads(data?.lead);
-      })
-      .catch((error) => {
-        console.error("Fetch error:", error);
-        // Handle errors
-      });
-  };
+  //     },
+  //     body: JSON.stringify(adSerch),
+  //   })
+  //     .then((response) => {
+  //       if (!response.ok) {
+  //         throw new Error(`HTTP error! Status: ${response.status}`);
+  //       }
+  //       return response.json();
+  //     })
+  //     .then((data) => {
+  //       console.log("Response from server:", data);
+  //       setstatus(data?.success);
+  //       setleads(data?.lead);
+  //       setfilterleads(data?.lead);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Fetch error:", error);
+  //       // Handle errors
+  //     });
+  // };
   
-  // const [carecters, setCarecters] = useState(0);
-  // const [row, setRow] = useState(1);
   const AdvanceSerch = async (e) => {
     e.preventDefault();
     const updatedata = {
@@ -401,11 +392,8 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
   };
 
 
-
   const EnterMessage = (e) => {
     const message = e.target.value;
- 
-  
     setsendmessage({ ...sendmessage, message: message });
   };
 
@@ -515,7 +503,8 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
         <div className="col-md-12 advS">
           <form onSubmit={DeleteSelected}>
             <div className="row">
-            <div className="col-md-3">
+           
+              <div className="col-md-3">
               <label>Select Template</label>
                 <div className="form-group">
                   <select className="form-control">
@@ -526,7 +515,7 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
                   </select>
                 </div>
               </div>
-              <div className="col-md-3 ">
+              <div className="col-md-3">
               <label>Message</label>
                 <div className="form-group">
                 <textarea
@@ -555,14 +544,9 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
               <div className="col-md-3 " style={{ marginTop: '25px' }}>
                 <div className="form-group">
                 <label></label>
-                <button className="btn-ecport-pdf" style={{width: '100%', border:'0px'}}>
-                  Send
-                  </button>
+                <button className="btn-ecport-pdf" style={{width: '100%', border:'0px'}}>Send</button>
                 </div>
               </div>
-              
-
-
             </div>
           </form>
         </div>
@@ -616,10 +600,6 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
         </>
 
       )}
-
-
-
-
 
 
 

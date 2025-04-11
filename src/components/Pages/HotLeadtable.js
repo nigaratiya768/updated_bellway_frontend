@@ -5,37 +5,28 @@ import DataTable from "react-data-table-component";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllAgent } from "../../features/agentSlice";
+import { getAllAgent, getAllAgentWithData } from "../../features/agentSlice";
 import { getAllStatus } from "../../features/statusSlice";
 import { toast } from "react-toastify";
-import { addlead } from "../../features/leadSlice";
-// import ReactHTMLTableToExcel from 'react-html-table-to-excel'; // Import the library
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+// import ReactHTMLTableToExcel from 'react-html-table-to-excel'; // Import the library
 import { addfollowup, getAllFollowup } from "../../features/followupSlice";
-const disposition = [
-  "Not Interested",
-  "Interested",
-  "Not Contacted",
-  "Not Answered",
-  "Callback",
-  "Not Reachable",
-  "Call Disconnected",
-  "Busy",
-  "Won"
-];
-
-export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
+export const HotLeadtable = ({
+  sendDataToParent,
+  isHotLead = false,
+  dataFromParent,
+  agents,
+}) => {
   const dispatch = useDispatch();
   const [leads, setleads] = useState([]);
-  const [status, setstatus] = useState();
+  const [status, setstatus] = useState("true");
   const [search, setsearch] = useState("");
   const [filterleads, setfilterleads] = useState([]);
   const [selectedRowIds, setSelectedRowIds] = useState([]);
   const [selectedRowIds1, setSelectedRowIds1] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
   const { agent } = useSelector((state) => state.agent);
   const { Statusdata } = useSelector((state) => state.StatusData);
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -45,7 +36,20 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
   const [dataa, setData] = useState({
     followup_date: new Date(), // Initialize with the current date
   });
- 
+  // console.log('agentssssssssssss',agents)
+  const handlePageChange = (page) => {
+    setCurrentPage(page); // Update current page state when page changes
+  };
+
+  const handleQuickEdit = (row) => {
+    setSelectedRow(row); // Set the row data
+    setIsModalOpen(true); // Open the modal
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Close the modal
+  };
+
   const getdatetimeformate = (datetime) => {
     if (datetime) {
       const dateObject = new Date(datetime);
@@ -62,15 +66,7 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
   function padZero(num) {
     return num < 10 ? `0${num}` : num;
   }
-  const handleQuickEdit = (row) => {
-    setSelectedRow(row); // Set the row data
-    setIsModalOpen(true); // Open the modal
-  };
-  
-  // Function to handle modal close
-  const handleCloseModal = () => {
-    setIsModalOpen(false); // Close the modal
-  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -120,16 +116,12 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
         toast.error("An error occurred while submitting followup");
     }
 };
-  
 
- 
-  
   const parseDate = (dateString) => {
     const date = new Date(dateString);
     return isNaN(date.getTime()) ? null : date;
   };
   
-
   const quickEditModal = (
     <div
       className={`modal fade ${isModalOpen ? 'show' : ''}`}
@@ -208,37 +200,64 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
       </div>
     </div>
   );
+
+
   useEffect(() => {
     const fetchData = async () => {
-      dispatch(getAllAgent());
-      dispatch(getAllStatus());
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // dispatch(getAllAgent());
+        dispatch(getAllStatus());
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
     };
     fetchData();
   }, []);
+  const getAllLead = async () => {
+    try {
+      const responce = await axios.get(
+        `${apiUrl}/get_all_lead?isHotLead=${isHotLead}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "mongodb-url": DBuUrl,
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
+      );
+      setstatus(responce?.data?.success);
+      setleads(responce?.data?.lead);
+      setfilterleads(responce?.data?.lead);
+      return responce?.data?.message;
+    } catch (error) {
+      console.log(error);
+      setfilterleads();
+    }
+  };
   const getAllLead1 = async () => {
     try {
-      const responce = await axios.get(`${apiUrl}/getAllNewLead`, {
+      const responce = await axios.get(`${apiUrl}/get_All_Lead_Followup`, {
         headers: {
           "Content-Type": "application/json",
           "mongodb-url": DBuUrl,
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
       });
-      const leads = responce?.data?.lead || [];
+      const leads = responce?.data?.lead;
+      // console.log(leads)
 
-      // Filter out leads where type is 'excel'
-      const filteredLeads = leads.filter((lead) => lead.type !== "excel");
+      const filteredLeads = responce?.data?.lead?.filter(
+        // (lead) => lead?.type !== "excel"
+        (lead) => lead?.type !== "excel" && 
+                  (
+                   lead?.status_details[0]?.status_name === "Meeting")
+      );
 
-      // Set the filtered leads
+      setstatus(responce?.data?.success);
       setleads(filteredLeads);
       setfilterleads(filteredLeads);
-
-      return responce?.data?.message;
     } catch (error) {
-      const message = await error?.response?.data?.message;
-      if (message == "Client must be connected before running operations") {
-        getAllLead1();
-      }
       console.log(error);
       setfilterleads();
     }
@@ -246,8 +265,41 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
 
   const getAllLead2 = async (assign_to_agent) => {
     try {
+      const responce = await axios.post(`${apiUrl}/get_Leadby_agentid_status`, {
+        assign_to_agent,
+        headers: {
+          "Content-Type": "application/json",
+          "mongodb-url": DBuUrl,
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      const filteredLeads = responce?.data?.lead?.filter(
+        // (lead) => lead?.type !== "excel"
+        (lead) => lead?.type !== "excel" && 
+                  (
+                   lead?.status_details[0]?.status_name === "Meeting")
+      );
+      if (responce?.data?.success === true) {
+        setstatus(responce?.data?.success);
+        setleads(filteredLeads);
+        setfilterleads(filteredLeads);
+      }
+      if (responce?.data?.success === false) {
+        setstatus(responce?.data?.success);
+        setleads(filteredLeads);
+        setfilterleads(filteredLeads);
+      }
+    } catch (error) {
+      console.log(error);
+      setfilterleads();
+    }
+  };
+
+  /////// For Team Leader
+  const getAllLead3 = async (assign_to_agent) => {
+    try {
       const responce = await axios.post(
-        `${apiUrl}/getAllNewLeadBYAgentId`,
+        `${apiUrl}/getLeadbyTeamLeaderidandwithoutstatus`,
         {
           assign_to_agent,
         },
@@ -259,21 +311,54 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
           },
         }
       );
+      const filteredLeads = responce?.data?.lead?.filter(
+        // (lead) => lead?.type !== "excel"
+        (lead) => lead?.type !== "excel" && 
+                  (
+                   lead?.status_details[0]?.status_name === "Meeting")
+      );
       if (responce?.data?.success === true) {
-        setstatus(responce?.data?.success);
-        setleads(responce?.data?.lead);
-        setfilterleads(responce?.data?.lead);
-      }
-      if (responce?.data?.success === false) {
-        setstatus(responce?.data?.success);
-        setleads(responce?.data?.lead);
-        setfilterleads(responce?.data?.lead);
+        setleads(filteredLeads);
+        setfilterleads(filteredLeads);
+        return responce?.data?.message;
       }
     } catch (error) {
-      const message = await error?.response?.data?.message;
-      if (message == "Client must be connected before running operations") {
-        getAllLead2();
+      console.log(error);
+      setfilterleads();
+    }
+  };
+
+  /// group leader 
+  const getAllLead4 = async (assign_to_agent) => {
+    try {
+      const responce = await axios.post(
+        `${apiUrl}/getLeadbyGroupLeaderidandwithoutstatus`,
+        {
+          assign_to_agent,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "mongodb-url": DBuUrl,
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
+      );
+
+      const filteredLeads = responce?.data?.lead?.filter(
+        // (lead) => lead?.type !== "excel"
+        (lead) => lead?.type !== "excel" && 
+                  (
+                   lead?.status_details[0]?.status_name === "Meeting")
+      );
+   
+
+      if (responce?.data?.success === true) {
+        setleads(filteredLeads);
+        setfilterleads(filteredLeads);
+        return responce?.data?.message;
       }
+    } catch (error) {
       console.log(error);
       setfilterleads();
     }
@@ -282,10 +367,32 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
   useEffect(() => {
     if (localStorage.getItem("role") === "admin") {
       getAllLead1();
-    } else {
+      dispatch(getAllAgent());
+    } else if (localStorage.getItem("role") === "TeamLeader") {
+      getAllLead3(localStorage.getItem("user_id"));
+      dispatch(
+        getAllAgentWithData({
+          assign_to_agent: localStorage.getItem("user_id"),
+        })
+      );
+    } else if (localStorage.getItem("role") === "GroupLeader") {
+      getAllLead4(localStorage.getItem("user_id"));
+      dispatch(
+        getAllAgentWithData({
+          assign_to_agent: localStorage.getItem("user_id"),
+        })
+      );
+    } 
+    else {
       getAllLead2(localStorage.getItem("user_id"));
+      dispatch(
+        getAllAgent({ assign_to_agent: localStorage.getItem("user_id") })
+      );
     }
-  }, [localStorage.getItem("user_id"), apiUrl, DBuUrl]);
+
+    dispatch(getAllStatus());
+  }, [localStorage.getItem("user_id")]);
+
 
   useEffect(() => {
     const result = leads.filter((lead) => {
@@ -313,7 +420,7 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
             .toLowerCase()
             .includes(search.toLowerCase())) ||
         (lead.contact_no &&
-          lead.contact_no.toLowerCase().includes(search.toLowerCase())) // Added condition for searching by phone number
+          lead.contact_no.toLowerCase().includes(search.toLowerCase()))
       );
     });
     setfilterleads(result);
@@ -323,6 +430,7 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
     localStorage.getItem("role") === "admin" ||
     localStorage.getItem("role") === "TeamLeader";
   const isAdmin1 = localStorage.getItem("role") === "admin";
+
   ////// cleck per page
   const handleCheckAll = (e) => {
     e.preventDefault();
@@ -401,6 +509,7 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
         </>
       ),
     },
+
     {
       name: "Name",
       cell: (row) => (
@@ -421,30 +530,6 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
     },
   ];
 
-  const updateDisposition = async (row, e) => {
-    e.preventDefault();
-    // console.log("disposition", row, e.target.value);
-    const updatedLeadData = {
-      ...row,
-      disposition: e.target.value,
-    };
-
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + localStorage.getItem("token"),
-    };
-    try {
-      const responce = await axios.put(
-        `${apiUrl}/UpdateLeadByLeadId/${row?._id}`,
-        updatedLeadData,
-        { headers }
-      );
-      toast.success(responce?.data?.message);
-    } catch (error) {
-      toast.warn(error?.response?.data?.message);
-    }
-  };
-
   const getStatusBadgeClass = (statusName) => {
     switch (statusName) {
       case "Call Back & Hot Lead": {
@@ -461,13 +546,56 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
         return "bg-default"; // Default class for other statuses
     }
   };
+  // const [response, setResponse] = useState(null);
+  // const [error, setError] = useState(null);
+
+  // const StartCall = async (mobile, coustmername, agentname, agentid) => {
+  //   let agentNumber;
+
+  //   if (agentid === "660e41a556c9cfebc340c62a") {
+  //     agentNumber = "9315857918"; // Khayati
+  //   } else if (agentid === "660e411856c9cfebc340c5e5") {
+  //     agentNumber = "7669599759"; // Nabya
+  //   } else {
+  //     agentNumber = "7669599759"; // Nabya (default)
+  //   }
+
+  //   let data = JSON.stringify({
+  //     secretKey: "Ha59PMqNZ2JRdChP",
+  //     clientId: "Magiec_C2C",
+  //     agentNumber: `${agentNumber}`,
+  //     customerNumber: `${mobile}`,
+  //     agentName: `${agentname}`,
+  //     customerName: `${coustmername}`,
+  //     calledId: "08037658901",
+  //   });
+
+  //   let config = {
+  //     method: "post",
+  //     maxBodyLength: Infinity,
+  //     url: "https://c2c.ivrobd.com/api/c2c/process",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     data: data,
+  //   };
+
+  //   axios
+  //     .request(config)
+  //     .then((response) => {
+  //       setResponse(response.data);
+  //     })
+  //     .catch((error) => {
+  //       setError(error);
+  //     });
+  // };
 
   const adminColumns = [
-    {
-      name: "Agent",
-      selector: (row) => row?.agent_details[0]?.agent_name,
-      sortable: true,
-    },
+    // {
+    //   name: "Agent",
+    //   selector: (row) => row?.agent_details[0]?.agent_name,
+    //   sortable: true,
+    // },
     {
       name: "Status",
       selector: (row) => row?.status_details[0]?.status_name,
@@ -480,30 +608,12 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
       sortable: true,
     },
     {
-      name: <div style={{ display: "none" }}>Last Comment</div>,
+      name: <div style={{ display: "none" }}>`</div>,
       selector: (row) => row?.description,
       sortable: true,
       cell: (row) => <div style={{ display: "none" }}>{row.description}</div>,
     },
-    // {
-    //   name: "Disposition & Remaks",
-    //   cell: (row) => (
-    //     <div>
-    //       <select
-    //         name="disposition"
-    //         onChange={(e) => updateDisposition(row, e)}
-    //         value={row?.disposition}
-    //       >
-    //         <option>Select</option>
-    //         {disposition.map((item, index) => {
-    //           return <option value={item}>{item}</option>;
-    //         })}
-    //       </select>
-    //     </div>
-    //   ),
 
-    //   sortable: true,
-    // },
     {
       name: "Quick Edit",
       cell: (row) => <button onClick={() => handleQuickEdit(row)}>Quick Edit</button>,
@@ -524,34 +634,51 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
           ),
       sortable: true,
     },
-
     {
       name: "Action",
       cell: (row) => (
-        <a href={`/followupleads/${row?._id}`}>
-          <button className="btn btn-success btn-sm">
-            <i className="fa fa-pencil-square" aria-hidden="true"></i>
-          </button>
-          <span
-            className={`badge ${getStatusBadgeClass(
-              row?.status_details[0]?.status_name
-            )}`}
-            style={{ marginLeft: "10px" }}
+        <>
+          <a href={`/followupleads/${row?._id}`}>
+            <button className="btn btn-success btn-sm">
+              <i className="fa fa-pencil-square" aria-hidden="true"></i>
+            </button>
+            <span
+              className={`badge ${getStatusBadgeClass(
+                row?.status_details[0]?.status_name
+              )}`}
+              style={{ marginLeft: "10px" }}
+            >
+              {row?.status_details[0]?.status_name == "Call Back & Hot Lead"
+                ? "Hot"
+                : row?.status_details[0]?.status_name == "Call Back"
+                ? "C"
+                : row?.status_details[0]?.status_name == "Meeting"
+                ? "M"
+                : ""}
+            </span>
+          </a>
+          {/* <span
+            onClick={() =>
+              StartCall(
+                row?.contact_no,
+                row?.full_name,
+                row?.agent_details[0]?.agent_name,
+                row?.agent_details[0]?._id
+              )
+            }
+            className="btn btn-danger btn-sm"
           >
-            {row?.status_details[0]?.status_name == "Call Back & Hot Lead"
-              ? "Hot"
-              : row?.status_details[0]?.status_name == "Call Back"
-              ? "C"
-              : row?.status_details[0]?.status_name == "Meeting"
-              ? "M"
-              : ""}
-          </span>
-        </a>
+            <i className="fa fa-phone"></i>
+          </span> */}
+        </>
       ),
 
       sortable: true,
     },
   ];
+  const role = localStorage.getItem("role");
+  // const aaaa =agents.map((ag)=>)
+  console.log('aaaa',agents)
 
   const userColumns = [
     {
@@ -565,40 +692,18 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
       sortable: true,
     },
     {
-      name: <div style={{ display: "none" }}>Last Comment</div>,
+      name: <div style={{ display: "" }}>Last Comment</div>,
       selector: (row) => row?.description,
       sortable: true,
-      cell: (row) => <div style={{ display: "none" }}>{row.description}</div>,
+      cell: (row) => <div style={{ display: "" }}>{row.description}</div>,
     },
-    // {
-    //   name: "Change Status",
-    //   cell: (row) => (
-    //     <div style={{ display: 'flex', alignItems: 'center' }}>
-    //       <select
-    //         onChange={(e) => handleStatusChange(e, row)}
-    //         value={row?.status_details[0]?._id || ""}
-    //         style={{ marginRight: '10px' }}
-    //       >
-    //         <option value="">Select Status</option>
-    //         {Statusdata.leadstatus?.map((status) => (
-    //           <option
-    //             key={status._id}
-    //             value={status._id}
-    //           >
-    //             {status.status_name}
-    //           </option>
-    //         ))}
-    //       </select>
-        
-    //     </div>
-    //   ),
-    // },
     
-
     {
       name: "Quick Edit",
       cell: (row) => <button onClick={() => handleQuickEdit(row)}>Quick Edit</button>,
     },
+
+     
     {
       // name: "Followup date",
       name: <div style={{ display: "none" }}>Followup date</div>,
@@ -616,30 +721,175 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
     {
       name: "Action",
       cell: (row) => (
-        <a href={`/followupleads/${row?._id}`}>
-          <button className="btn btn-success">
-            <i className="fa fa-pencil-square" aria-hidden="true"></i>
-          </button>
-          <span
-            className={`badge ${getStatusBadgeClass(
-              row?.status_details[0]?.status_name
-            )}`}
-            style={{ marginLeft: "10px" }}
+        <>
+          <a href={`/followupleads/${row?._id}`}>
+            <button className="btn btn-success">
+              <i className="fa fa-pencil-square" aria-hidden="true"></i>
+            </button>
+            <span
+              className={`badge ${getStatusBadgeClass(
+                row?.status_details[0]?.status_name
+              )}`}
+              style={{ marginLeft: "10px" }}
+            >
+              {row?.status_details[0]?.status_name == "Call Back & Hot Lead"
+                ? "Hot"
+                : row?.status_details[0]?.status_name == "Call Back"
+                ? "C"
+                : row?.status_details[0]?.status_name == "Meeting"
+                ? "M"
+                : ""}
+            </span>
+          </a>
+          {/* <span
+            onClick={() =>
+              StartCall(
+                row?.contact_no,
+                row?.full_name,
+                row?.agent_details[0]?.agent_name,
+                row?.agent_details[0]?._id
+              )
+            }
+            className="btn btn-danger btn-sm"
           >
-            {row?.status_details[0]?.status_name == "Call Back & Hot Lead"
-              ? "Hot"
-              : row?.status_details[0]?.status_name == "Call Back"
-              ? "C"
-              : row?.status_details[0]?.status_name == "Meeting"
-              ? "M"
-              : ""}
-          </span>
-        </a>
+            <i className="fa fa-phone"></i>
+          </span> */}
+        </>
       ),
       sortable: true,
     },
   ];
+  if (role === "GroupLeader") {
+    
+    userColumns.splice(3, 0, {
+      name:<div style={{ display: "" }}>TeamLeader</div>,
+      selector: (row) => {
+       
+        const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
+    
+        if (matchingAgent) {
+          
+          if (matchingAgent.role === "TeamLeader") {
+            return matchingAgent.agent_name;
+          }
+          if (matchingAgent.role === "GroupLeader") {
+            return `${matchingAgent.agent_name} (GM)`; 
+          }
+          
+          else if (matchingAgent.role === "user") {
+            return matchingAgent.agent_details.length > 0 
+            ? matchingAgent.agent_details[0].agent_name 
+            : "";
+          }
+        }
+  
+  
+        return "";
+      },
+      sortable: true,
+    });
+    
+  userColumns.splice(4, 0, {
+    name: "Agent",
+    // selector: (row) => row?.agent_details[0]?.agent_name,
+    selector: (row) => {
+    
+      const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
 
+      return matchingAgent && matchingAgent.role === "user" ? matchingAgent.agent_name : "";
+    },
+    sortable: true,
+  });
+  }
+
+  if (role === "admin") {
+    
+
+    adminColumns.splice(2, 0, {
+      name: <div style={{ display: "" }}>GroupLeader</div>,
+      selector: (row) => {
+        const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
+    
+        if (matchingAgent) {
+         
+          if (matchingAgent.role === "GroupLeader") {
+            return `${matchingAgent.agent_name}`;
+          }
+          if (matchingAgent.role === "TeamLeader") {
+            return matchingAgent.agent_details.length > 0
+              ? matchingAgent.agent_details[0].agent_name
+              : "";
+          }
+          if (matchingAgent.role === "user") {
+            const userAgentDetails = matchingAgent.agent_details;
+    
+            if (userAgentDetails.length > 0) {
+              const teamLeader = agents.find(
+                (agent) => agent._id === userAgentDetails[0]._id && agent.role === "TeamLeader"
+              );
+              if (teamLeader.role === "TeamLeader") {
+                return teamLeader.agent_details.length > 0 
+                ? teamLeader.agent_details[0].agent_name 
+                : "";
+              }
+            }
+          }
+        }
+    
+        return "";
+      },
+      sortable: true,
+    });
+    
+    adminColumns.splice(3, 0, {
+      name:<div style={{ display: "" }}>TeamLeader</div>,
+      selector: (row) => {
+       
+        const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
+    
+        if (matchingAgent) {
+          
+          if (matchingAgent.role === "TeamLeader") {
+            return matchingAgent.agent_name;
+          }
+          // if (matchingAgent.role === "GroupLeader") {
+          //   return `${matchingAgent.agent_name} (GM)`; 
+          // }
+          
+          else if (matchingAgent.role === "user") {
+            return matchingAgent.agent_details.length > 0 
+            ? matchingAgent.agent_details[0].agent_name 
+            : "";
+          }
+        }
+  
+  
+        return "";
+      },
+      sortable: true,
+    });
+    
+  adminColumns.splice(4, 0, {
+    name: "Agent",
+    // selector: (row) => row?.agent_details[0]?.agent_name,
+    selector: (row) => {
+    
+      const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
+
+      return matchingAgent && matchingAgent.role === "user" ? matchingAgent.agent_name : "";
+    },
+    sortable: true,
+  });
+  }
+
+  if (role === "TeamLeader") {
+    adminColumns.splice(3, 0, {
+      name: "Agent",
+      selector: (row) => row?.agent_details[0]?.agent_name,
+      sortable: true,
+    });
+  }
+  
   const columns = isAdmin
     ? [...commonColumns, ...adminColumns]
     : [...commonColumns, ...userColumns];
@@ -755,7 +1005,6 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
       user_id: localStorage.getItem("user_id"),
       role: localStorage.getItem("role"),
     };
-
     fetch(`${apiUrl}/getAdvanceFillter`, {
       method: "POST",
       headers: {
@@ -783,7 +1032,7 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
       });
   };
 
-  const exportToExcel = () => {
+  const exportToExcel1 = () => {
     const columnsForExport = columns.map((column) => ({
       title: column.name,
       dataIndex: column.selector,
@@ -816,13 +1065,47 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
     document.body.removeChild(link);
   };
 
+  const exportToExcel = () => {
+    const columnsForExport = columns
+      .filter((column) => column.name !== "Checkbox") // Remove the Checkbox column
+      .map((column) => ({
+        title: column.name === "" ? "Description" : column.name, // Change [object Object] to Description
+        dataIndex: column.selector,
+      }));
+
+    const dataForExport = filterleads.map((row) =>
+      columns
+        .filter((column) => column.name !== "Checkbox") // Remove the Checkbox column
+        .map((column) => {
+          if (column.selector && typeof column.selector === "function") {
+            return column.selector(row);
+          }
+          return row[column.selector];
+        })
+    );
+
+    const exportData = [
+      columnsForExport.map((col) => col.title),
+      ...dataForExport,
+    ];
+    const blob = new Blob(
+      [exportData.map((row) => row.join("\t")).join("\n")],
+      {
+        type: "application/vnd.ms-excel",
+      }
+    );
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "table.xls";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const Refresh = () => {
     setTimeout(() => {
       window.location.reload(false);
     }, 500);
-  };
-  const handlePageChange = (page) => {
-    setCurrentPage(page); // Update current page state when page changes
   };
   const getrowperpage = async (e) => {
     const newValue = e.target.value;
@@ -831,7 +1114,10 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
 
   return (
     <div>
-      <div className="row " style={{ display: dataFromParent }}>
+      <div
+        className="row justify-content-md-center"
+        style={{ display: dataFromParent }}
+      >
         <div className="col-md-12 advS">
           <form onSubmit={AdvanceSerch}>
             <div className="advfilter-wrap-box">
@@ -927,7 +1213,7 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
         </div>
       </div>
       <div className="row">
-        <div className="col-md-12 advS">
+        <div className="col-md-12">
           <div className="export-wrap">
             {isAdmin1 ? (
               <>
@@ -948,6 +1234,7 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
         </div>
       </div>
       {quickEditModal}
+
       {status === false ? (
         <table
           id="example"
@@ -1004,7 +1291,7 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
               </button>
               <span class="btn btn-sm shadow_btn">Rows per page:</span>
               <select
-                className="btn btn-sm shadow_btn"
+                className="btn btn-sm shadow_btn  "
                 value={rowsPerPage}
                 onChange={getrowperpage}
               >

@@ -54,7 +54,7 @@ function GroupSms() {
                        </Link> 
                     </div>
                     <div className="col-xl-4 col-md-4" >
-                    <Link to="/UploadContent">
+                    <Link to="/UploadContactsSms">
                          <div className="sms_headings">
                          <div className="card card-animate">
                           <div className="card-body bd_bottom2">
@@ -63,7 +63,7 @@ function GroupSms() {
                               <div className="counter-icon bg-primary-gradient box-shadow-primary rounded-circle ms-auto mb-0"> 
                               <i class="fa fa-file-code-o mb-5" aria-hidden="true"></i></div>
                                  <h5 className="mb-2 noSms">
-                                     Upload Content
+                                     Uploaded Contact's
                                     </h5>
                                 </div>
                               </div>

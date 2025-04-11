@@ -12,10 +12,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { getAllAgent, getAllAgentWithData } from "../../features/agentSlice";
 import { getAllStatus } from "../../features/statusSlice";
 import { format } from "date-fns";
-
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+// import ReactHTMLTableToExcel from 'react-html-table-to-excel'; // Import the library
+import { addfollowup, getAllFollowup } from "../../features/followupSlice";
 export default function AllFollowupstable({
   sendDataToParent,
   dataFromParent,
+  agents,
 }) {
   const dispatch = useDispatch();
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -30,7 +34,11 @@ export default function AllFollowupstable({
   const [selectedRowIds1, setSelectedRowIds1] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
+  const [selectedRow, setSelectedRow] = useState(null); 
+  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [dataa, setData] = useState({
+    followup_date: new Date(), // Initialize with the current date
+  });
   ////////end attechment //////
   const datafomate = (date) => {
     // const dateTime = new Date(date);
@@ -45,6 +53,199 @@ export default function AllFollowupstable({
     return `${formattedDate} ${formattedTime}`;
   };
 
+  const handleQuickEdit = (row) => {
+    setSelectedRow(row); // Set the row data
+    setIsModalOpen(true); // Open the modal
+  };
+  
+  // Function to handle modal close
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Close the modal
+  };
+
+
+  const handleSubmit1 = async (e) => {
+    e.preventDefault(); 
+  
+    const followupDate = selectedRow?.followup_date;
+    
+    if (!followupDate) {
+      toast.warn("Followup date is required");
+      return;
+    }
+  
+    
+    const adjustedFollowupDate = new Date(followupDate).toISOString().slice(0, 16);
+  
+  
+    const updatedLeadData = {
+      lead_id: selectedRow._id,
+      commented_by: selectedRow?.agent_details[0]?._id || '',
+      followup_status_id: selectedRow.status_details[0]?._id || '',
+    
+      followup_date: adjustedFollowupDate ,
+      
+      followup_won_amount: selectedRow.followup_won_amount || 0,
+      followup_lost_reason_id: selectedRow.followup_lost_reason_id || '',
+      add_to_calender: selectedRow.add_to_calender || false,
+      followup_desc: selectedRow.description || '',
+    };
+  
+    console.log("Submitting data:", updatedLeadData);
+  
+    try {
+      const response = await dispatch(addfollowup(updatedLeadData));
+      if (response.payload.success) {
+        toast.success(response.payload?.message);
+        // Simulate page refresh effect
+        // handleCloseModal(); 
+        window.location.reload();
+        
+      } else {
+        toast.warn(response.payload?.message);
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Error submitting followup:", error);
+      toast.error("An error occurred while submitting followup");
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const followupDate = selectedRow?.followup_date;
+    
+    if (!followupDate) {
+        toast.warn("Followup date is required");
+        return;
+    }
+
+    // Custom format function to preserve exact date and time
+    const formatDate = (date) => {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
+    const updatedLeadData = {
+        lead_id: selectedRow._id,
+        commented_by: selectedRow?.agent_details[0]?._id || '',
+        followup_status_id: selectedRow.status_details[0]?._id || '',
+        followup_date: formatDate(followupDate), // Use the custom format function
+        followup_won_amount: selectedRow.followup_won_amount || 0,
+        followup_lost_reason_id: selectedRow.followup_lost_reason_id || '',
+        add_to_calender: selectedRow.add_to_calender || false,
+        followup_desc: selectedRow.description || '',
+    };
+
+    console.log("Submitting data:", updatedLeadData);
+
+    try {
+        const response = await dispatch(addfollowup(updatedLeadData));
+        if (response.payload.success) {
+            toast.success(response.payload?.message);
+            window.location.reload();
+        } else {
+            toast.warn(response.payload?.message);
+            window.location.reload();
+        }
+    } catch (error) {
+        console.error("Error submitting followup:", error);
+        toast.error("An error occurred while submitting followup");
+    }
+};
+
+  const parseDate = (dateString) => {
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? null : date;
+  };
+  
+
+ 
+  const quickEditModal = (
+    <div
+      className={`modal fade ${isModalOpen ? 'show' : ''}`}
+      style={{ display: isModalOpen ? 'block' : 'none' }}
+      aria-labelledby="quickEditModalLabel"
+      aria-hidden={!isModalOpen}
+    >
+      <div className="modal-dialog">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title" id="quickEditModalLabel">Quick Edit</h5>
+            <button type="button" className="btn-close" onClick={handleCloseModal}></button>
+          </div>
+          <div className="modal-body">
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label htmlFor="lastComment" className="form-label">Last Comment</label>
+                <textarea
+                  id="lastComment"
+                  className="form-control"
+                  value={selectedRow?.description || ""}
+                  onChange={(e) => setSelectedRow({ ...selectedRow, description: e.target.value })}
+                />
+              </div>
+             
+              <div className="mb-3">
+                <label htmlFor="followupDateTime" className="form-label">Follow-up Date and Time</label>
+                {/* <input
+                  type="datetime-local"
+                  id="followupDateTime"
+                  className="form-control"
+                  value={selectedRow?.followup_date ? formatDateToLocal(selectedRow.followup_date) : ""}
+                  onChange={(e) => setSelectedRow({ ...selectedRow, followup_date: e.target.value })}
+                /> */}
+                 <DatePicker
+                      // selected={dataa.followup_date}
+                      // onChange={(date) => setData({ ...selectedRow, followup_date: date })}
+                      selected={selectedRow?.followup_date ? new Date(selectedRow.followup_date) : null}
+                      onChange={(date) => setSelectedRow({ ...selectedRow, followup_date: date })}
+                      showTimeSelect
+                      timeFormat="hh:mm aa"
+                      timeIntervals={5}
+                      timeCaption="Time"
+                      dateFormat="dd/MM/yyyy h:mm aa" // Custom format: day/month/year and 12-hour time
+                      className="form-control"
+                      placeholderText="Followup date"
+                      name="followup_date"
+                      id="followup_date"
+                    />
+              </div>
+  
+              <div className="mb-3">
+                <label htmlFor="status" className="form-label">Change Status</label>
+                <select
+                  id="status"
+                  className="form-control"
+                  value={selectedRow?.status_details[0]?._id || ""}
+                  onChange={(e) => setSelectedRow({ ...selectedRow, status_details: [{ _id: e.target.value }] })}
+                >
+                  <option value="">Select Status</option>
+                  {Statusdata.leadstatus?.map((status) => (
+                    <option key={status._id} value={status._id}>
+                      {status.status_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+  
+              <div className="modal-footer">
+                <button type="submit" className="btn btn-primary">Submit</button>
+                <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>Close</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
   const Refresh = () => {
     setTimeout(() => {
       window.location.reload(false);
@@ -56,10 +257,11 @@ export default function AllFollowupstable({
         headers: {
           "Content-Type": "application/json",
           "mongodb-url": DBuUrl,
+          Authorization: "Bearer " + localStorage.getItem("token"),
         },
       });
-      const leads = responce?.data?.lead
-      console.log(leads)
+      const leads = responce?.data?.lead;
+      // console.log(leads)
 
       const filteredLeads = responce?.data?.lead?.filter(
         (lead) => lead?.type !== "excel"
@@ -81,6 +283,7 @@ export default function AllFollowupstable({
         headers: {
           "Content-Type": "application/json",
           "mongodb-url": DBuUrl,
+          Authorization: "Bearer " + localStorage.getItem("token"),
         },
       });
       const filteredLeads = responce?.data?.lead?.filter(
@@ -109,6 +312,43 @@ export default function AllFollowupstable({
         `${apiUrl}/getLeadbyTeamLeaderidandwithoutstatus`,
         {
           assign_to_agent,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "mongodb-url": DBuUrl,
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
+      );
+      const filteredLeads = responce?.data?.lead?.filter(
+        (lead) => lead?.type !== "excel"
+      );
+      if (responce?.data?.success === true) {
+        setleads(filteredLeads);
+        setfilterleads(filteredLeads);
+        return responce?.data?.message;
+      }
+    } catch (error) {
+      console.log(error);
+      setfilterleads();
+    }
+  };
+
+  /// group leader 
+  const getAllLead4 = async (assign_to_agent) => {
+    try {
+      const responce = await axios.post(
+        `${apiUrl}/getLeadbyGroupLeaderidandwithoutstatus`,
+        {
+          assign_to_agent,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "mongodb-url": DBuUrl,
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
         }
       );
       const filteredLeads = responce?.data?.lead?.filter(
@@ -136,7 +376,15 @@ export default function AllFollowupstable({
           assign_to_agent: localStorage.getItem("user_id"),
         })
       );
-    } else {
+    } else if (localStorage.getItem("role") === "GroupLeader") {
+      getAllLead4(localStorage.getItem("user_id"));
+      dispatch(
+        getAllAgentWithData({
+          assign_to_agent: localStorage.getItem("user_id"),
+        })
+      );
+    } 
+    else {
       getAllLead2(localStorage.getItem("user_id"));
       dispatch(
         getAllAgent({ assign_to_agent: localStorage.getItem("user_id") })
@@ -366,7 +614,7 @@ export default function AllFollowupstable({
     }
   };
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.innerHTML = `
       @keyframes blink {
         0% { background-color: red; }
@@ -381,11 +629,11 @@ export default function AllFollowupstable({
     };
   }, []);
   const adminColumns = [
-    {
-      name: "Agenttt",
-      selector: (row) => row?.agent_details[0]?.agent_name,
-      sortable: true,
-    },
+    // {
+    //   name: "Agent",
+    //   selector: (row) => row?.agent_details[0]?.agent_name,
+    //   sortable: true,
+    // },
     // {
     //   name: "Followup date",
     //   selector: (row) =>
@@ -395,22 +643,60 @@ export default function AllFollowupstable({
     //       : "",
     //   sortable: true,
     // },
+    // {
+    //   name: "Followup date",
+    //   selector: (row) => row?.followup_date ? getdatetimeformate(row?.followup_date) : "",
+    //   sortable: true,
+    //   cell: (row) => {
+    //     const followupDate = new Date(row?.followup_date);
+    //     const currentTime = new Date();
+
+    //     // Extract date and time components
+    //     const followupDateOnly = new Date(followupDate.toDateString());
+    //     const currentDateOnly = new Date(currentTime.toDateString());
+
+    //     const isDatePassed = followupDateOnly < currentDateOnly;
+    //     const isTimePassed = followupDate <= currentTime;
+    //     const isBlinking = isDatePassed || (followupDateOnly.getTime() === currentDateOnly.getTime() && isTimePassed);
+
+    //     // Define blinking CSS
+    //     const blinkingStyles = {
+    //       whiteSpace: 'normal',
+    //       overflow: 'visible',
+    //       maxWidth: '200px',
+    //       animation: isBlinking ? 'blink 1s step-start infinite' : 'none',
+    //       backgroundColor: isBlinking ? 'red' : 'transparent',
+    //       color: isBlinking ? 'white' : 'inherit',
+    //       padding: '4px',
+    //       borderRadius: '4px',
+    //     };
+
+    //     return (
+    //       <div
+    //         style={blinkingStyles}
+    //         title={row?.followup_date}
+    //       >
+    //         {row?.followup_date ? getdatetimeformate(row?.followup_date) : ""}
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       name: "Followup date",
-      selector: (row) => row?.followup_date ? getdatetimeformate(row?.followup_date) : "",
+      selector: (row) => row?.followup_date ? formatFollowupDate(row?.followup_date) : "",
       sortable: true,
       cell: (row) => {
         const followupDate = new Date(row?.followup_date);
         const currentTime = new Date();
-  
+    
         // Extract date and time components
         const followupDateOnly = new Date(followupDate.toDateString());
         const currentDateOnly = new Date(currentTime.toDateString());
-  
+    
         const isDatePassed = followupDateOnly < currentDateOnly;
         const isTimePassed = followupDate <= currentTime;
         const isBlinking = isDatePassed || (followupDateOnly.getTime() === currentDateOnly.getTime() && isTimePassed);
-  
+    
         // Define blinking CSS
         const blinkingStyles = {
           whiteSpace: 'normal',
@@ -422,18 +708,19 @@ export default function AllFollowupstable({
           padding: '4px',
           borderRadius: '4px',
         };
-  
+    
         return (
           <div
             style={blinkingStyles}
             title={row?.followup_date}
           >
-            {row?.followup_date ? getdatetimeformate(row?.followup_date) : ""}
+            {row?.followup_date ? formatFollowupDate(row?.followup_date) : ""}
           </div>
         );
       },
     },
-  
+    
+    
     {
       name: <div style={{ display: "none" }}>Last Comment</div>,
       selector: (row) => row?.description,
@@ -441,6 +728,10 @@ export default function AllFollowupstable({
       cell: (row) => <div style={{ display: "none" }}>{row.description}</div>,
     },
 
+    {
+      name: "Quick Edit",
+      cell: (row) => <button onClick={() => handleQuickEdit(row)}>Quick Edit</button>,
+    },
     {
       name: "Action",
       cell: (row) => (
@@ -469,7 +760,7 @@ export default function AllFollowupstable({
       sortable: true,
     },
   ];
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.innerHTML = `
     @keyframes blink {
       0% { background-color: red; }
@@ -479,8 +770,29 @@ export default function AllFollowupstable({
   `;
   document.head.appendChild(style);
 
+  // script for date time
+  function formatFollowupDate(dateString) {
+    const date = new Date(dateString);
 
+    // Format day, month, and year
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-based
+    const year = date.getFullYear();
 
+    // Format hours and minutes
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+
+    // Determine AM/PM
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12; // Convert from 24-hour to 12-hour format
+    hours = hours ? hours : 12; // The hour '0' should be '12'
+    const formattedHours = String(hours).padStart(2, "0");
+
+    return `${day}/${month}/${year} ${formattedHours}:${minutes}:${seconds} ${ampm}`;
+  }
+  const role = localStorage.getItem("role");
   const userColumns = [
     // {
     //   name: "Followup date",
@@ -493,37 +805,38 @@ export default function AllFollowupstable({
     // },
     {
       name: "Followup date",
-      selector: (row) => row?.followup_date ? getdatetimeformate(row?.followup_date) : "",
+      selector: (row) =>
+        row?.followup_date ? getdatetimeformate(row?.followup_date) : "",
       sortable: true,
       cell: (row) => {
         const followupDate = new Date(row?.followup_date);
         const currentTime = new Date();
-  
+
         // Extract date and time components
         const followupDateOnly = new Date(followupDate.toDateString());
         const currentDateOnly = new Date(currentTime.toDateString());
-  
+
         const isDatePassed = followupDateOnly < currentDateOnly;
         const isTimePassed = followupDate <= currentTime;
-        const isBlinking = isDatePassed || (followupDateOnly.getTime() === currentDateOnly.getTime() && isTimePassed);
-  
+        const isBlinking =
+          isDatePassed ||
+          (followupDateOnly.getTime() === currentDateOnly.getTime() &&
+            isTimePassed);
+
         // Define blinking CSS
         const blinkingStyles = {
-          whiteSpace: 'normal',
-          overflow: 'visible',
-          maxWidth: '200px',
-          animation: isBlinking ? 'blink 1s step-start infinite' : 'none',
-          backgroundColor: isBlinking ? 'red' : 'transparent',
-          color: isBlinking ? 'white' : 'inherit',
-          padding: '4px',
-          borderRadius: '4px',
+          whiteSpace: "normal",
+          overflow: "visible",
+          maxWidth: "200px",
+          animation: isBlinking ? "blink 1s step-start infinite" : "none",
+          backgroundColor: isBlinking ? "red" : "transparent",
+          color: isBlinking ? "white" : "inherit",
+          padding: "4px",
+          borderRadius: "4px",
         };
-  
+
         return (
-          <div
-            style={blinkingStyles}
-            title={row?.followup_date}
-          >
+          <div style={blinkingStyles} title={row?.followup_date}>
             {row?.followup_date ? getdatetimeformate(row?.followup_date) : ""}
           </div>
         );
@@ -534,6 +847,10 @@ export default function AllFollowupstable({
       selector: (row) => row?.description,
       sortable: true,
       cell: (row) => <div style={{ display: "none" }}>{row.description}</div>,
+    },
+    {
+      name: "Quick Edit",
+      cell: (row) => <button onClick={() => handleQuickEdit(row)}>Quick Edit</button>,
     },
     {
       name: "Action",
@@ -563,7 +880,136 @@ export default function AllFollowupstable({
       sortable: true,
     },
   ];
+  if (role === "GroupLeader") {
+    
+    userColumns.splice(1, 0, {
+      name:<div style={{ display: "" }}>TeamLeader</div>,
+      selector: (row) => {
+       
+        const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
+    
+        if (matchingAgent) {
+          
+          if (matchingAgent.role === "TeamLeader") {
+            return matchingAgent.agent_name;
+          }
+          if (matchingAgent.role === "GroupLeader") {
+            return `${matchingAgent.agent_name} (GM)`; 
+          }
+          
+          else if (matchingAgent.role === "user") {
+            return matchingAgent.agent_details.length > 0 
+            ? matchingAgent.agent_details[0].agent_name 
+            : "N/A";
+          }
+        }
+  
+  
+        return "";
+      },
+      sortable: true,
+    });
+    
+  userColumns.splice(2, 0, {
+    name: "Agent",
+    // selector: (row) => row?.agent_details[0]?.agent_name,
+    selector: (row) => {
+    
+      const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
 
+      return matchingAgent && matchingAgent.role === "user" ? matchingAgent.agent_name : "";
+    },
+    sortable: true,
+  });
+  }
+
+  if (role === "admin") {
+    
+
+    adminColumns.splice(0, 0, {
+      name: <div style={{ display: "" }}>GroupLeader</div>,
+      selector: (row) => {
+        const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
+    
+        if (matchingAgent) {
+         
+          if (matchingAgent.role === "GroupLeader") {
+            return `${matchingAgent.agent_name}`;
+          }
+          if (matchingAgent.role === "TeamLeader") {
+            return matchingAgent.agent_details.length > 0
+              ? matchingAgent.agent_details[0].agent_name
+              : "";
+          }
+          if (matchingAgent.role === "user") {
+            const userAgentDetails = matchingAgent.agent_details;
+    
+            if (userAgentDetails.length > 0) {
+              const teamLeader = agents.find(
+                (agent) => agent._id === userAgentDetails[0]._id && agent.role === "TeamLeader"
+              );
+              if (teamLeader.role === "TeamLeader") {
+                return teamLeader.agent_details.length > 0 
+                ? teamLeader.agent_details[0].agent_name 
+                : "";
+              }
+            }
+          }
+        }
+    
+        return "";
+      },
+      sortable: true,
+    });
+    
+    adminColumns.splice(1, 0, {
+      name:<div style={{ display: "" }}>TeamLeader</div>,
+      selector: (row) => {
+       
+        const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
+    
+        if (matchingAgent) {
+          
+          if (matchingAgent.role === "TeamLeader") {
+            return matchingAgent.agent_name;
+          }
+          // if (matchingAgent.role === "GroupLeader") {
+          //   return `${matchingAgent.agent_name} (GM)`; 
+          // }
+          
+          else if (matchingAgent.role === "user") {
+            return matchingAgent.agent_details.length > 0 
+            ? matchingAgent.agent_details[0].agent_name 
+            : "";
+          }
+        }
+  
+  
+        return "";
+      },
+      sortable: true,
+    });
+    
+  adminColumns.splice(2, 0, {
+    name: "Agent",
+    // selector: (row) => row?.agent_details[0]?.agent_name,
+    selector: (row) => {
+    
+      const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
+
+      return matchingAgent && matchingAgent.role === "user" ? matchingAgent.agent_name : "";
+    },
+    sortable: true,
+  });
+  }
+
+  if (role === "TeamLeader") {
+    adminColumns.splice(3, 0, {
+      name: "Agent",
+      selector: (row) => row?.agent_details[0]?.agent_name,
+      sortable: true,
+    });
+  }
   const columns = isAdmin
     ? [...commonColumns, ...adminColumns]
     : [...commonColumns, ...userColumns];
@@ -685,6 +1131,7 @@ export default function AllFollowupstable({
         headers: {
           "Content-Type": "application/json",
           "mongodb-url": DBuUrl,
+          Authorization: "Bearer " + localStorage.getItem("token"),
         },
         body: JSON.stringify(aaaaa),
       })
@@ -726,6 +1173,7 @@ export default function AllFollowupstable({
       headers: {
         "Content-Type": "application/json",
         "mongodb-url": DBuUrl,
+        Authorization: "Bearer " + localStorage.getItem("token"),
       },
       body: JSON.stringify(updatedata),
     })
@@ -756,11 +1204,11 @@ export default function AllFollowupstable({
   return (
     <div>
       <div className="row " style={{ display: dataFromParent }}>
-        <div className="advS">
+        <div className="col-md-12 advS">
           <form onSubmit={AdvanceSerch}>
             <div className="advfilter-wrap-box">
               <div className="row justify-content-md-center">
-                <div className="col-md-3 col-6">
+                <div className="col-md-3 ">
                   <div className="form-group">
                     <select
                       className="form-control"
@@ -786,7 +1234,7 @@ export default function AllFollowupstable({
                     </select>
                   </div>
                 </div>
-                <div className="col-md-3 col-6">
+                <div className="col-md-3">
                   <div className="form-group">
                     <select
                       className="form-control"
@@ -799,26 +1247,31 @@ export default function AllFollowupstable({
                       <option value="Unassigne">Unassigned Agent</option>
                       {agent?.agent?.map((agents, key) => {
                         return (
-                          <option value={agents._id}>{agents.agent_name}</option>
+                          <option value={agents._id}>
+                            {agents.agent_name}
+                          </option>
                         );
                       })}
                     </select>
                   </div>
                 </div>
-                <div className="col-md-3 col-6">
+                <div className="col-md-3">
                   <div className="form-group">
                     <input
                       type="date"
                       placeholder="Date To"
                       className="form-control"
                       onChange={(e) =>
-                        setAdvanceSerch({ ...adSerch, startDate: e.target.value })
+                        setAdvanceSerch({
+                          ...adSerch,
+                          startDate: e.target.value,
+                        })
                       }
                       name="startDate"
                     />
                   </div>
                 </div>
-                <div className="col-md-3 col-6">
+                <div className="col-md-3">
                   <div className="form-group">
                     <input
                       type="date"
@@ -832,22 +1285,16 @@ export default function AllFollowupstable({
                   </div>
                 </div>
 
-                <div className="col-md-3 col-6">
+                <div className="col-md-3">
                   <div className="form-group">
-                    <button
-                      type="submit"
-                      className="btn-advf-sub"
-                    >
+                    <button type="submit" className="btn-advf-sub">
                       Submit
                     </button>
                   </div>
                 </div>
-                <div className="col-md-3 col-6">
+                <div className="col-md-3">
                   <div className="form-group">
-                    <button
-                      onClick={Refresh}
-                      className="btn-advf-refresh"
-                    >
+                    <button onClick={Refresh} className="btn-advf-refresh">
                       Refresh
                     </button>
                   </div>
@@ -862,22 +1309,13 @@ export default function AllFollowupstable({
           <div className="export-wrap">
             {isAdmin1 ? (
               <>
-                <button
-                  className="btn-ecport-pdf"
-                  onClick={exportToPDF}
-                >
+                <button className="btn-ecport-pdf" onClick={exportToPDF}>
                   Export PDF
                 </button>
-                <button
-                  className="btn-ecport-xls"
-                  onClick={exportToExcel}
-                >
+                <button className="btn-ecport-xls" onClick={exportToExcel}>
                   Export Excel
                 </button>
-                <button
-                  className="btn-ecport-del"
-                  onClick={DeleteSelected}
-                >
+                <button className="btn-ecport-del" onClick={DeleteSelected}>
                   Delete
                 </button>{" "}
               </>
@@ -887,6 +1325,7 @@ export default function AllFollowupstable({
           </div>
         </div>
       </div>
+      {quickEditModal}
       {status === false ? (
         <table
           id="example"
@@ -913,16 +1352,10 @@ export default function AllFollowupstable({
         <>
           {isAdmin1 ? (
             <>
-              <button
-                className="btn-sel-all"
-                onClick={handleCheckAll1}
-              >
+              <button className="btn-sel-all" onClick={handleCheckAll1}>
                 Select All
               </button>
-              <button
-                className="btn-sel-one"
-                onClick={handleCheckAll}
-              >
+              <button className="btn-sel-one" onClick={handleCheckAll}>
                 Select Per Page
               </button>
               <span class="btn btn-sm shadow_btn">Rows per page:</span>
@@ -941,16 +1374,10 @@ export default function AllFollowupstable({
           ) : (
             <>
               {" "}
-              <button
-                className="btn-sel-all"
-                onClick={handleCheckAll1}
-              >
+              <button className="btn-sel-all" onClick={handleCheckAll1}>
                 Select All
               </button>
-              <button
-                className="btn-sel-one"
-                onClick={handleCheckAll}
-              >
+              <button className="btn-sel-one" onClick={handleCheckAll}>
                 Select Per Page
               </button>
               <span class="btn btn-sm shadow_btn">Rows per page:</span>

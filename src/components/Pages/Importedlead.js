@@ -9,6 +9,7 @@ import { getAllStatus } from "../../features/statusSlice";
 import axios from "axios";
 import { toast } from "react-toastify";
 function Importedlead() {
+  const user_id = localStorage.getItem("user_id");
   const apiUrl = process.env.REACT_APP_API_URL;
   const dispatch = useDispatch();
   const { lead, loading } = useSelector((state) => state.lead);
@@ -16,6 +17,32 @@ function Importedlead() {
   const { Statusdata } = useSelector((state) => state.StatusData);
   const [LeadStatus, setLeadStatus] = useState();
   const [Leadagent, setLeadagent] = useState();
+  const agentsApiUrl = "https://demo.bizavtar.co.in/api/v1/get_all_agent";
+  const [agents, setAgents] = useState([]);
+
+
+
+
+  useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        // const response = await axios.get(agentsApiUrl);
+        const response = await axios.get( `${apiUrl}/get_all_agent/`);
+        console.log('API response:', response.data);
+        if (response.data.success) {
+          const agentsData = response.data.agent || []; // Corrected key
+          console.log('Agents data:', agentsData);
+          setAgents(agentsData);
+        } else {
+          toast.warn(response.data.message);
+        }
+      } catch (error) {
+        toast.warn("Error fetching agents");
+      }
+    };
+
+    fetchAgents();
+  }, []);
 
   useEffect(() => {
     dispatch(getAllLead());
@@ -88,7 +115,7 @@ function Importedlead() {
                               <p>Bulk Action</p>
                             </div>
                           </div>
-                          <div className="col-md-4 col-sm-3 col-xs-5 col-5 ex-g">
+                          <div className="col-md-4 col-sm-3 col-xs-12">
                             <select className="form-control"
                               onChange={e => setLeadStatus({ ...LeadStatus, status: e.target.value })}
                               name="status" id="status" required >
@@ -102,7 +129,7 @@ function Importedlead() {
                               })}
                             </select>
                           </div>
-                          <div className="col-md-3 col-sm-3 col-xs-4 col-4 ex-g">
+                          {/* <div className="col-md-3 col-sm-3 col-xs-12">
                             <select className="form-control"
                               onChange={e => setLeadagent({ ...Leadagent, agent: e.target.value })}
                               name="agent" id="agent" required >
@@ -116,8 +143,103 @@ function Importedlead() {
                                 );
                               })}
                             </select>
+                          </div> */}
+                           <div className="col-md-3 col-sm-3 col-xs-12">
+                            {userRole === "admin" && (
+                              <select
+                                className="form-control"
+                                onChange={e => setLeadagent({ ...Leadagent, agent: e.target.value })}
+                                name="agent"
+                                id="agent"
+                                required
+                              >
+                                <option value="">Transfer to</option>
+                                {agents.length > 0 ? (
+                                  agents.map((agent) => (
+                                    <option key={agent._id} value={agent._id}>
+                                      {agent.agent_name}
+                                    </option>
+                                  ))
+                                ) : (
+                                  <option disabled>No agents available</option>
+                                )}
+                              </select>
+                            )}
+                            {/* {userRole === "GroupLeader" && (
+                              <select
+                                className="form-control"
+                                onChange={e => setLeadagent({ ...Leadagent, agent: e.target.value })}
+                                name="agent"
+                                id="agent"
+                                required
+                              >
+                                <option value="">Transfer to</option>
+                                {agents.filter(agent => agent.role === "TeamLeader").length > 0 ? (
+                                  agents.filter(agent => agent.role === "TeamLeader").map((agent) => (
+                                    <option key={agent._id} value={agent._id}>
+                                      {agent.agent_name}
+                                    </option>
+                                  ))
+                                ) : (
+                                  <option disabled>No TeamLeaders available</option>
+                                )}
+                              </select>
+                            )} */}
+                            {userRole === "GroupLeader" && (
+                                <select
+                                  className="form-control"
+                                  onChange={(e) => setLeadagent({ ...Leadagent, agent: e.target.value })}
+                                  name="agent"
+                                  id="agent"
+                                  required
+                                >
+                                  <option value="">Transfer to</option>
+                                  {agents
+                                    .filter(agent => agent.role === "TeamLeader" && agent.assigntl === user_id) // Match assigntl with user_id
+                                    .map(agent => (
+                                      <option key={agent._id} value={agent._id}>
+                                        {agent.agent_name}
+                                      </option>
+                                    ))}
+                                  {agents.filter(agent => agent.role === "TeamLeader" && agent.assigntl === user_id).length === 0 && (
+                                    <option disabled>No matching TeamLeaders available</option>
+                                  )}
+                                </select>
+                              )}  
+                                                        
+                            {userRole === "TeamLeader" && (
+                              <select
+                                className="form-control"
+                                onChange={e => setLeadagent({ ...Leadagent, agent: e.target.value })}
+                                name="agent"
+                                id="agent"
+                                required
+                              >
+                                {/* <option value="">Transfer to</option>
+                                {agents.filter(agent => agent.role === "user").length > 0 ? (
+                                  agents.filter(agent => agent.role === "user").map((agent) => (
+                                    <option key={agent._id} value={agent._id}>
+                                      {agent.agent_name}
+                                    </option>
+                                  ))
+                                ) : (
+                                  <option disabled>No TeamLeaders available</option>
+                                )} */}
+                                <option value="">Transfer to</option>
+                                  {agents
+                                    .filter(agent => agent.role === "user" && agent.assigntl === user_id) // Match assigntl with user_id
+                                    .map(agent => (
+                                      <option key={agent._id} value={agent._id}>
+                                        {agent.agent_name}
+                                      </option>
+                                    ))}
+                                  {agents.filter(agent => agent.role === "user" && agent.assigntl === user_id).length === 0 && (
+                                    <option disabled>No matching TeamLeaders available</option>
+                                  )}
+                              </select>
+                            )}
                           </div>
-                          <div className="col-md-2 col-sm-2 col-xs-3 col-3 pl-0 ex-g">
+                          <div className="col-md-2 col-sm-2 col-xs-12 pl-0">
                             <input type="submit" className="button-57" defaultValue="Submit" />
                           </div>
                         </div>
@@ -128,23 +250,23 @@ function Importedlead() {
                 <div className="col-md-5 col-xs-12">
                   <div className="advfilter-wrap">
                     <div className="row">
-                    <div className="col-md-4 col-sm-4 mobil-nns col-xs-4 col-4">
+                      <div className="col-md-4 col-sm-4 mobil-nns col-xs-4">
                         <div>
                           <button className="btn-advf" onClick={advanceserch}>
                             <i class="fa fa-search" aria-hidden="true"></i>
                             &nbsp;  Advance Filter </button>
                         </div>
                       </div>
-                      <div className="col-md-4 col-sm-4 col-xs-6 col-4">
+                      <div className="col-md-4 col-sm-4 col-xs-6">
                         <div>
                           <Link className="btn-advf" to="/Addlead"> <i className="fa fa-plus" />&nbsp;  Add Lead </Link>
                         </div>
                       </div>
-                      <div className="col-md-4 col-sm-4 col-xs-6 col-4">
+                      <div className="col-md-4 col-sm-4 col-xs-6">
                         {/* <div>
                           <Link className="btn-advf" to="/import-lead"> <i className="fa fa-download" />&nbsp; Import </Link>
                         </div> */}
-                        {(userRole === "admin" || userRole === "TeamLeader") && (
+                        {(userRole === "admin" || userRole === "TeamLeader" || userRole === "GroupLeader") && (
                       <div className="btn-group btn-groupese">
                         <Link className="btn btnes exports" to="/import-lead">
                           <i className="fa fa-download" />
@@ -164,8 +286,8 @@ function Importedlead() {
                 <div className="col-12 pl-0">
                   <Importedleadstable sendDataToParent={handleChildData} dataFromParent={none} />
                 </div>
-
-              </div>
+ 
+              </div>            
 
 
 

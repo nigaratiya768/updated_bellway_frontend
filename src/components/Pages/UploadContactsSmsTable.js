@@ -4,7 +4,6 @@ import Loader from "../Loader";
 import axios from "axios";
 import DataTable from "react-data-table-component";
 
-
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { toast } from "react-toastify";
@@ -14,7 +13,10 @@ import { getAllAgent } from "../../features/agentSlice";
 import { getAllStatus } from "../../features/statusSlice";
 import { getHostingbydomain } from "../../features/licenceSlice";
 
-export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFromParent }) {
+export default function UploadContactsSmsTable({
+  sendDataToParent,
+  dataFromParent,
+}) {
   const dispatch = useDispatch();
   const apiUrl = process.env.REACT_APP_API_URL;
   const DBuUrl = process.env.REACT_APP_DB_URL;
@@ -32,75 +34,71 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
   };
   const getAllLead1 = async () => {
     try {
-      const responce = await axios.get(
-        `${apiUrl}/get_all_lead`,{
-          headers: {
-            "Content-Type": "application/json",
-            "mongodb-url":DBuUrl,
-          },
-        }
-      );
-      
+      const responce = await axios.get(`${apiUrl}/get_All_Lead_Followup`, {
+        headers: {
+          "Content-Type": "application/json",
+          "mongodb-url": DBuUrl,
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+
       setleads(responce?.data?.lead);
       setfilterleads(responce?.data?.lead);
     } catch (error) {
-      const message=await error?.response?.data?.message;
-      if(message=='Client must be connected before running operations' || message=='Internal Server Error'){
+      const message = await error?.response?.data?.message;
+      if (
+        message == "Client must be connected before running operations" ||
+        message == "Internal Server Error"
+      ) {
         getAllLead1();
       }
       console.log(error);
       setfilterleads();
     }
   };
-  
 
   const getAllLead2 = async (assign_to_agent) => {
     try {
-      const responce = await axios.post(
-        `${apiUrl}/get_Leadby_agentid_with_status`,
-          {  
-             assign_to_agent, 
-             headers: {
-              "Content-Type": "application/json",
-              "mongodb-url":DBuUrl,
-            },
-          } 
-       );
-           
-      if(responce?.data?.success===true){ 
-        setstatus(responce?.data?.success)
-        setleads(responce?.data?.lead); 
+      const responce = await axios.post(`${apiUrl}/get_Leadby_agentid_status`, {
+        assign_to_agent,
+        headers: {
+          "Content-Type": "application/json",
+          "mongodb-url": DBuUrl,
+            Authorization: "Bearer " + localStorage.getItem("token"),
+
+        },
+      });
+
+      if (responce?.data?.success === true) {
+        setstatus(responce?.data?.success);
+        setleads(responce?.data?.lead);
         setfilterleads(responce?.data?.lead);
       }
-      if(responce?.data?.success===false){
-        setstatus(responce?.data?.success)
-        setleads(responce?.data?.lead); 
+      if (responce?.data?.success === false) {
+        setstatus(responce?.data?.success);
+        setleads(responce?.data?.lead);
         setfilterleads(responce?.data?.lead);
       }
-     
-      
-    } catch (error) { 
-      const message=await error?.response?.data?.message;
-      if(message=='Client must be connected before running operations'){
+    } catch (error) {
+      const message = await error?.response?.data?.message;
+      if (message == "Client must be connected before running operations") {
         getAllLead2(assign_to_agent);
       }
       console.log(error);
       setfilterleads();
     }
- };
-
-
+  };
 
   useEffect(() => {
-    var host=window.location.hostname;
+    var host = window.location.hostname;
     dispatch(getHostingbydomain(host));
-   if(localStorage.getItem("role")==='admin'){
-    getAllLead1();
-   }else{
-       getAllLead2(localStorage.getItem("user_id"));
-   }     
-          dispatch(getAllAgent());
-          dispatch(getAllStatus());
+    if (localStorage.getItem("role") === "admin") {
+      getAllLead1();
+    } else {
+      getAllLead2(localStorage.getItem("user_id"));
+    }
+    dispatch(getAllAgent());
+    dispatch(getAllStatus());
   }, [localStorage.getItem("user_id")]);
 
   useEffect(() => {
@@ -160,7 +158,6 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
     }
   };
 
-
   const adminColumns = [
     {
       name: "Agent",
@@ -169,59 +166,52 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
     },
     {
       name: "Followup date",
-      selector: (row) => (row?.followup_date) ? (row?.followup_date) : (''),
+      selector: (row) => (row?.followup_date ? row?.followup_date : ""),
       sortable: true,
     },
-   
   ];
 
   const userColumns = [
-
     {
       name: "Followup date",
-      selector: (row) => (row?.followup_date) ? (row?.followup_date) : (''),
+      selector: (row) => (row?.followup_date ? row?.followup_date : ""),
       sortable: true,
     },
-    
   ];
 
-  const columns = isAdmin ? [...commonColumns, ...adminColumns] : [...commonColumns, ...userColumns];
-
+  const columns = isAdmin
+    ? [...commonColumns, ...adminColumns]
+    : [...commonColumns, ...userColumns];
 
   const getdatetimeformate = (datetime) => {
     const dateObject = new Date(datetime);
-    const formattedDate = `${dateObject.getFullYear()}-${padZero(dateObject.getMonth() + 1)}-${padZero(dateObject.getDate())} ${padZero(dateObject.getHours())}:${padZero(dateObject.getMinutes())}`;
+    const formattedDate = `${dateObject.getFullYear()}-${padZero(
+      dateObject.getMonth() + 1
+    )}-${padZero(dateObject.getDate())} ${padZero(
+      dateObject.getHours()
+    )}:${padZero(dateObject.getMinutes())}`;
     return formattedDate;
-
-  }
+  };
   function padZero(num) {
     return num < 10 ? `0${num}` : num;
   }
 
-
-
-
   const exportToPDF = () => {
-
     const doc = new jsPDF();
     const tableDataForPDF = filterleads.map((row) =>
       columns.map((column) => {
-        if (column.selector && typeof column.selector === 'function') {
+        if (column.selector && typeof column.selector === "function") {
           return column.selector(row);
         }
         return row[column.selector];
       })
     );
 
-
-
-
-
     doc.autoTable({
       head: [columns.map((column) => column.name)],
       body: tableDataForPDF,
     });
-    doc.save('table.pdf');
+    doc.save("table.pdf");
   };
 
   const customStyles = {
@@ -236,7 +226,6 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
         border: "0px solid #111", // Set the header cell border
         fontSize: "14px",
         background: "#f0f0f0",
-
       },
     },
     rows: {
@@ -256,15 +245,14 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
     },
   };
 
-
   const exportToExcel = () => {
-    const columnsForExport = columns.map(column => ({
+    const columnsForExport = columns.map((column) => ({
       title: column.name,
       dataIndex: column.selector,
     }));
 
-    const dataForExport = filterleads.map(row =>
-      columns.map(column => {
+    const dataForExport = filterleads.map((row) =>
+      columns.map((column) => {
         if (column.selector && typeof column.selector === "function") {
           return column.selector(row);
         }
@@ -272,14 +260,20 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
       })
     );
 
-    const exportData = [columnsForExport.map(col => col.title), ...dataForExport];
+    const exportData = [
+      columnsForExport.map((col) => col.title),
+      ...dataForExport,
+    ];
 
-    const blob = new Blob([exportData.map(row => row.join('\t')).join('\n')], {
-      type: 'application/vnd.ms-excel',
-    });
-    const link = document.createElement('a');
+    const blob = new Blob(
+      [exportData.map((row) => row.join("\t")).join("\n")],
+      {
+        type: "application/vnd.ms-excel",
+      }
+    );
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = 'table.xls';
+    link.download = "table.xls";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -289,18 +283,18 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
   const handleSelectedRowsChange = ({ selectedRows }) => {
     const selectedIds = selectedRows.map((row) => row.contact_no);
     setSelectedRowIds(selectedIds);
-
   };
   const [sendmessage, setsendmessage] = useState([]);
   const [smsdata, setsmsdata] = useState();
   const DeleteSelected = async (e) => {
     e.preventDefault();
-    const url = await hostings["0"]?.smsendpointurl;
-    if(!selectedRowIds){
-        return toast.success("Plz Select Client");
+    if (!selectedRowIds) {
+      return toast.success("Plz Select Client");
     }
-    const updated = { ...sendmessage, "noofperson": selectedRowIds.length };
-    const selectedmobilenumber = selectedRowIds.join(',')
+
+    const url = await hostings["0"]?.smsendpointurl;
+    const updated = { ...sendmessage, noofperson: selectedRowIds?.length };
+    const selectedmobilenumber = selectedRowIds.join(",");
     try {
       savesmsreport(updated);
       const response = await axios.get(`${url}`, {
@@ -309,64 +303,60 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
           pass: await hostings["0"]?.smspass,
           sender: await hostings["0"]?.smssender,
           phone: await selectedmobilenumber,
-            text: 'API Test - SMSFresh',
-          priority: 'ndnd',
-          stype: 'normal'
-        }
+          text: "API Test - SMSFresh",
+          priority: "ndnd",
+          stype: "normal",
+        },
       });
     } catch (error) {
       console.error(error);
     }
   };
-  
+
   const savesmsreport = async (updated) => {
     try {
-      const responce = await axios.post(
-        `http://localhost:5000/api/v1/addSmsReport`,
-        {
-          updated,
-        }
-      );
+      const responce = await axios.post(`${apiUrl}/addSmsReport`, {
+        updated,
+      });
       if (responce?.data?.success === true) {
         toast.success(responce.data.message1);
       }
     } catch (error) {
       console.log(error);
     }
-  }
-  const [adSerch, setAdvanceSerch] = useState([]);
-  const AdvanceSerch1 = async (e) => {
-    e.preventDefault();
-    fetch(`${apiUrl}/getAdvanceFillter`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "mongodb-url": DBuUrl,
-            Authorization: "Bearer " + localStorage.getItem("token"),
-
-      },
-      body: JSON.stringify(adSerch),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Response from server:", data);
-        setstatus(data?.success);
-        setleads(data?.lead);
-        setfilterleads(data?.lead);
-      })
-      .catch((error) => {
-        console.error("Fetch error:", error);
-        // Handle errors
-      });
   };
+  const [adSerch, setAdvanceSerch] = useState([]);
+  // const AdvanceSerch = async (e) => {
+  //   e.preventDefault();
+  //   console.log(adSerch);
+  //   fetch(`${apiUrl}/getAdvanceFillter`, {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       "mongodb-url": DBuUrl,
+  //           Authorization: "Bearer " + localStorage.getItem("token"),
+
+  //     },
+  //     body: JSON.stringify(adSerch),
+  //   })
+  //     .then((response) => {
+  //       if (!response.ok) {
+  //         throw new Error(`HTTP error! Status: ${response.status}`);
+  //       }
+  //       return response.json();
+  //     })
+  //     .then((data) => {
+  //       console.log("Response from server:", data);
+  //       setstatus(data?.success);
+  //       setleads(data?.lead);
+  //       setfilterleads(data?.lead);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Fetch error:", error);
+  //       // Handle errors
+  //     });
+  // };
   
-  // const [carecters, setCarecters] = useState(0);
-  // const [row, setRow] = useState(1);
   const AdvanceSerch = async (e) => {
     e.preventDefault();
     const updatedata = {
@@ -399,13 +389,24 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
         // Handle errors
       });
   };
-
-
+  
+  const [carecters, setCarecters] = useState(0);
+  const [row, setRow] = useState(1);
 
   const EnterMessage = (e) => {
     const message = e.target.value;
- 
-  
+    const characterCount = message.length;
+    setCarecters(characterCount);
+
+    if (characterCount === 0) {
+      setRow(1);
+    } else if (characterCount <= 160) {
+      setRow(1);
+    } else {
+      const numberOfRows = Math.ceil(characterCount / 160);
+      setRow(numberOfRows);
+    }
+
     setsendmessage({ ...sendmessage, message: message });
   };
 
@@ -426,14 +427,17 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
                   >
                     <option>Status</option>
                     {Statusdata?.leadstatus?.map((status, key) => {
-                      if (status.status_name == 'Lost' || status.status_name == 'Won') {
-
+                      if (
+                        status.status_name == "Lost" ||
+                        status.status_name == "Won"
+                      ) {
                       } else {
                         return (
-                          <option value={status._id}>{status.status_name}</option>
+                          <option value={status._id}>
+                            {status.status_name}
+                          </option>
                         );
                       }
-
                     })}
                   </select>
                 </div>
@@ -510,66 +514,66 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
         </div>
       </div>
       {/* ///////for send sms */}
-      <br/>
       <div className="row " style={{ display: dataFromParent }}>
         <div className="col-md-12 advS">
           <form onSubmit={DeleteSelected}>
             <div className="row">
-            <div className="col-md-3">
-              <label>Select Template</label>
-                <div className="form-group">
-                  <select className="form-control">
-                    <option>Template 1</option>
-                    <option>Template 2</option>
-                    <option>Template 3</option>
-                    <option>Template 4</option>
-                  </select>
-                </div>
-              </div>
               <div className="col-md-3 ">
-              <label>Message</label>
+                <label>Enter Message</label>
                 <div className="form-group">
-                <textarea
+                  <textarea
                     type="text"
                     placeholder="Enter Message"
                     className="form-control"
-                   
                     onChange={EnterMessage}
                     name="message"
                     required
                   ></textarea>
                 </div>
               </div>
-              <div className="col-md-3 ">
+              <div className="col-md-3">
+                <label>Characters</label>
                 <div className="form-group">
-                <label>Image</label>
-                <input
-                    type="file"
+                  <input
+                    type="text"
+                    value={carecters}
                     className="form-control"
-                    placeholder="No of SMS"
-                    name="file"
-                    required
+                    placeholder="Characters"
+                    name="message"
                   />
                 </div>
               </div>
-              <div className="col-md-3 " style={{ marginTop: '25px' }}>
+              <div className="col-md-3 ">
                 <div className="form-group">
-                <label></label>
-                <button className="btn-ecport-pdf" style={{width: '100%', border:'0px'}}>
-                  Send
+                  <label>No of SMS</label>
+                  <input
+                    type="text"
+                    value={row}
+                    className="form-control"
+                    placeholder="No of SMS"
+                    name="message"
+                  />
+                </div>
+              </div>
+              <div className="col-md-3 " style={{ marginTop: "25px" }}>
+                <div className="form-group">
+                  <label></label>
+                  <button className="btn-ecport-pdf" style={{width: '100%', border:'0px'}}>
+                    Send
                   </button>
                 </div>
               </div>
-              
-
-
             </div>
           </form>
         </div>
       </div>
       {/* ///////   for send sms */}
       {status === false ? (
-        <table id="example" className="table table-striped pt-3" style={{ width: '100%' }}>
+        <table
+          id="example"
+          className="table table-striped pt-3"
+          style={{ width: "100%" }}
+        >
           <thead>
             <tr>
               <th>Full Name</th>
@@ -584,7 +588,6 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
             <tr>
               <p className="text-center">No Followup leads Founds</p>
             </tr>
-
           </tbody>
         </table>
       ) : (
@@ -593,9 +596,7 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
         <button className="btn btn-sm shadow_btn btn-success" onClick={exportToExcel}>
         Export Excel
       </button> */}
-          {
-            isAdmin ? (<></>) : (<></>)
-          }
+          {isAdmin ? <></> : <></>}
           <DataTable
             responsive
             id="table-to-export"
@@ -608,24 +609,22 @@ export default function AllFollowAllsmsleadsForWtsp({ sendDataToParent, dataFrom
             selectableRowsHighlight
             highlightOnHover
             subHeader
-                customStyles={customStyles}
+            // subHeaderComponent={
+            //   <input
+            //     type="text"
+            //     placeholder="Search here"
+            //     value={search}
+            //     onChange={(e) => setsearch(e.target.value)}
+            //     className="form-control w-25 "
+            //   />
+            // }
+            customStyles={customStyles}
             selectedRows={selectedRowIds}
             onSelectedRowsChange={handleSelectedRowsChange}
             striped
           />
         </>
-
       )}
-
-
-
-
-
-
-
-
-
-
     </div>
   );
 }
