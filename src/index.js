@@ -1,14 +1,34 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import { Provider } from 'react-redux';
-import { ToastContainer } from 'react-toastify';
-  import 'react-toastify/dist/ReactToastify.css';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
+import { Provider } from "react-redux";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 // import store  from './store';
-import store  from './app/store';
-const root = ReactDOM.createRoot(document.getElementById('root'));
+import store from "./app/store";
+
+import { messaging } from "./firebase";
+//
+if ("serviceWorker" in navigator) {
+  console.log("service-worker checking");
+  navigator.serviceWorker
+    .register("/service-worker.js")
+    .then((registration) => {
+      messaging.onBackgroundMessage((msgPayload) => {
+        console.log("background  message", msgPayload);
+      });
+      console.log("Service Worker registered with scope:", registration.scope);
+    })
+    .catch((error) => {
+      console.error("Service Worker registration failed:", error);
+    });
+}
+
+//
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <Provider store={store}>
     <App />
