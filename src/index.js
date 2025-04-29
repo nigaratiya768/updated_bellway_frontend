@@ -15,11 +15,8 @@ import { messaging } from "./firebase";
 if ("serviceWorker" in navigator) {
   console.log("service-worker checking");
   navigator.serviceWorker
-    .register("/service-worker.js")
+    .register("/firebase-messaging-sw.js")
     .then((registration) => {
-      messaging.onBackgroundMessage((msgPayload) => {
-        console.log("background  message", msgPayload);
-      });
       console.log("Service Worker registered with scope:", registration.scope);
     })
     .catch((error) => {

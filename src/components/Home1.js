@@ -76,8 +76,14 @@ function Home1() {
                   </div>
                 </div>
               </div> */}
-              <div className="col-xs-6 col-sm-6 col-md-6 col-lg-4">
-                <div className="panel panel-bd cardbox2">
+              <div
+                className="col-xs-6 col-sm-6 col-md-6 col-lg-4"
+                style={{ display: "none" }}
+              >
+                <div
+                  className="panel panel-bd cardbox2"
+                  style={{ display: "none" }}
+                >
                   <div className="panel-body bd-panel">
                     <div className="statistic-box text-center">
                       {" "}

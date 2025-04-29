@@ -28,7 +28,7 @@ import {
 } from "../../features/lostreasonSlice";
 import Loader from "../Loader";
 import axios from "axios";
-import Select from 'react-select'
+import Select from "react-select";
 function Setting() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const DBuUrl = process.env.REACT_APP_DB_URL;
@@ -37,35 +37,35 @@ function Setting() {
 
   const LeadTransfer = async (e) => {
     e.preventDefault();
-    const dataleadtran = await { 'totransfer': idToDelete1?.agent_id, 'oftransfer': idToDelete }
+    const dataleadtran = await {
+      totransfer: idToDelete1?.agent_id,
+      oftransfer: idToDelete,
+    };
     try {
-      const response = await axios.put(
-        `${apiUrl}/LeadTransfer/`,
-        dataleadtran
-      );
+      const response = await axios.put(`${apiUrl}/LeadTransfer/`, dataleadtran);
       if (response.data.success === true) {
-        window.$('#exampleModal').modal('hide');
+        window.$("#exampleModal").modal("hide");
         toast.success(response?.data?.message);
         dispatch(deleteAgent(idToDelete));
-   }
-     } catch (error) {
-      console.log('error',error);
-      if (error.response.data.message=='Please select leads') {
-        window.$('#exampleModal').modal('hide');
-        toast.success('Leads have been transferred successfully.');  
+      }
+    } catch (error) {
+      console.log("error", error);
+      if (error.response.data.message == "Please select leads") {
+        window.$("#exampleModal").modal("hide");
+        toast.success("Leads have been transferred successfully.");
         dispatch(deleteAgent(idToDelete));
-    }
-    
+      }
+
       console.log(error);
     }
-  }
+  };
   const removeSite = async (_id) => {
     const confirmDelete1 = window.confirm(
       "Are you sure you want to delete this agent?"
     );
     if (confirmDelete1) {
       setIdToDelete(_id);
-      window.$('#exampleModal').modal('show');
+      window.$("#exampleModal").modal("show");
     } else {
       toast.success("Delete Canceled");
       console.log("Delete canceled");
@@ -112,7 +112,7 @@ function Setting() {
     agent_mobile: "",
     client_access: "",
     agent_status: "",
-    agents:[]
+    agents: [],
   });
 
   const [formDatastatus, setformDatastatus] = useState({
@@ -121,9 +121,10 @@ function Setting() {
     status_name1: "",
   });
   const agentSubmit = async (e) => {
+    console.log("agents", formData);
     e.preventDefault();
     const length = formData?.agent_mobile?.length;
-   
+
     if (length < 10) {
       return toast.warn("PlZ Enter 10 Digit Contact No");
     }
@@ -131,15 +132,15 @@ function Setting() {
       const aaaaa = await dispatch(EditAgentDetails(formData));
       if (aaaaa.payload.success === true) {
         setTimeout(() => {
-      window.location.reload(false);
-    }, 500);
+          window.location.reload(false);
+        }, 500);
         toast.success("Update Successfully");
       } else {
         toast.warn("There are some problem");
       }
     } else {
       const { _id, ...newAaa } = await formData;
-      console.log('newAaa', newAaa);
+      console.log("newAaa", newAaa);
       const aaaaa = await dispatch(addagent(newAaa));
       if (aaaaa.payload.success === true) {
         setTimeout(() => {
@@ -159,33 +160,32 @@ function Setting() {
       agent_status: "",
     });
   };
-  const [assigntlnone,setassigntlnone]=useState('none');
-  const [assigntlnonetype,setassigntlnonetype]=useState('block');
+  const [assigntlnone, setassigntlnone] = useState("none");
+  const [assigntlnonetype, setassigntlnonetype] = useState("block");
   const UserType = async (e) => {
     setFormData({
       ...formData,
       role: e.target.value,
-    })
-    if(e.target.value==="user"){
-      setassigntlnone('block')
+    });
+    if (e.target.value === "user") {
+      setassigntlnone("block");
     }
-    if(e.target.value==="TeamLeader"){
-      setassigntlnone('none')
+    if (e.target.value === "TeamLeader") {
+      setassigntlnone("none");
     }
-    }
-  const editagent = async (_id,role) => {
+  };
+  const editagent = async (_id, role) => {
     setblock("contents");
     const selectedData = await agent?.agent.find((item) => item._id === _id);
-   
+
     setFormData(selectedData);
-    if(role=='admin' || role=='TeamLeader'){
-      setassigntlnone('none')
-      setassigntlnonetype('none')
-    }else{
-      setassigntlnone('block')
-      setassigntlnonetype('block')
+    if (role == "admin" || role == "TeamLeader") {
+      setassigntlnone("none");
+      setassigntlnonetype("none");
+    } else {
+      setassigntlnone("block");
+      setassigntlnonetype("block");
     }
-   
   };
   const editstatus = async (_id) => {
     const selectedData = await Statusdata?.leadstatus.find(
@@ -233,7 +233,7 @@ function Setting() {
 
   const LostReasonSave = async (e) => {
     e.preventDefault();
-    console.log('lostreasonset', lostreasonset)
+    console.log("lostreasonset", lostreasonset);
     if (lostreasonset._id) {
       const aaaa = await dispatch(EditLostReason(lostreasonset));
       if (aaaa.payload.success === true) {
@@ -257,7 +257,7 @@ function Setting() {
 
   const setpayingcap = async () => {
     const agent_count = await agent?.agent?.length;
-   
+
     // console.log(hostings["0"]?.Package);
     if (agent_count === hostings["0"]?.Package) {
       setblock("none");
@@ -265,7 +265,7 @@ function Setting() {
       setblock("contents");
     }
   };
-  
+
   useEffect(() => {
     dispatch(getAllLeadSource());
     dispatch(getAllStatus());
@@ -275,7 +275,7 @@ function Setting() {
 
   useEffect(() => {
     setpayingcap();
-  }, [agent?.agent?.length,hostings["0"]?.Package]);
+  }, [agent?.agent?.length, hostings["0"]?.Package]);
 
   const handlesourceDelete = async (countryId) => {
     const confirmDelete1 = window.confirm(
@@ -344,8 +344,7 @@ function Setting() {
       headers: {
         "Content-Type": "application/json",
         "mongodb-url": DBuUrl,
-            Authorization: "Bearer " + localStorage.getItem("token"),
-
+        Authorization: "Bearer " + localStorage.getItem("token"),
       },
       body: JSON.stringify(companydetails),
     })
@@ -362,60 +361,63 @@ function Setting() {
       })
       .catch((error) => {
         const message = error?.response?.data?.message;
-       
+
         console.error("Fetch error:", error);
       });
   };
 
   const GetCompanyDetails = async () => {
     try {
-      const responce = await axios.get(
-        `${apiUrl}/GetCompanyDetails`, {
+      const responce = await axios.get(`${apiUrl}/GetCompanyDetails`, {
         headers: {
           "Content-Type": "application/json",
           "mongodb-url": DBuUrl,
-            Authorization: "Bearer " + localStorage.getItem("token"),
-
+          Authorization: "Bearer " + localStorage.getItem("token"),
         },
-      }
-      );
+      });
       if (responce?.data?.success === true) {
         console.log(responce.data.setting?.["0"]);
         setcompanydetails(responce?.data?.setting?.["0"]);
       }
       if (responce?.data?.success === false) {
         const message = await responce?.data?.message;
-        if (message == 'Client must be connected before running operations' || message == 'Internal Server Error') {
+        if (
+          message == "Client must be connected before running operations" ||
+          message == "Internal Server Error"
+        ) {
           GetCompanyDetails();
         }
         setcompanydetails(responce?.data?.setting);
       }
     } catch (error) {
       const message = error?.response?.data?.message;
-      if (message == 'Client must be connected before running operations' || message == 'Internal Server Error') {
+      if (
+        message == "Client must be connected before running operations" ||
+        message == "Internal Server Error"
+      ) {
         GetCompanyDetails();
       }
     }
   };
-  const [TeamLeader,setTeamLeader]=useState([]);
-  const getTeamLeader=async ()=>{
+  const [TeamLeader, setTeamLeader] = useState([]);
+  const getTeamLeader = async () => {
     try {
       const responce = await axios.get(
         // `${apiUrl}/getAllTeamLeader`, {
-        `${apiUrl}/get_all_agent`, {
-        headers: {
-          "Content-Type": "application/json",
-          "mongodb-url": DBuUrl,
+        `${apiUrl}/get_all_agent`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "mongodb-url": DBuUrl,
             Authorization: "Bearer " + localStorage.getItem("token"),
-
-        },
-      }
+          },
+        }
       );
       setTeamLeader(responce?.data?.agent);
-     } catch (error) {
-     console.error(error)
+    } catch (error) {
+      console.error(error);
     }
-  }
+  };
   useEffect(() => {
     GetCompanyDetails();
     getTeamLeader();
@@ -423,12 +425,12 @@ function Setting() {
 
   const handleContactNoChange = (e) => {
     const inputValue = e.target.value;
- const numericValue = inputValue.replace(/\D/g, "");
-  const limitedValue = numericValue.slice(0, 10);
-  setFormData({
-    ...formData,
-    agent_mobile:limitedValue,
-  })
+    const numericValue = inputValue.replace(/\D/g, "");
+    const limitedValue = numericValue.slice(0, 10);
+    setFormData({
+      ...formData,
+      agent_mobile: limitedValue,
+    });
   };
 
   return (
@@ -444,7 +446,6 @@ function Setting() {
                   <div className="btn-group">
                     <p>Settings</p>
                   </div>
-
                 </div>
                 <div className="container ind-module bg-white">
                   <div className="row mt-50">
@@ -489,7 +490,6 @@ function Setting() {
                       </a>
                     </li> */}
 
-
                         {/* <li>
                           <a
                             id="v-pills-purchase-tab"
@@ -503,7 +503,6 @@ function Setting() {
                             <i className="fa wiht fa-cloud " /> Security Setting
                           </a>
                         </li> */}
-
 
                         {/* <li>
                       <a
@@ -548,7 +547,8 @@ function Setting() {
                    <a id="email-template-tab" data-toggle="pill" href="#email-template-exim" role="tab" aria-controls="email-template-exim" aria-selected="false"><i className="fa wiht fa-globe" /> Email Templates</a>
                    </li> */}
                         <li>
-                          <a  classname="active"
+                          <a
+                            classname="active"
                             id="v-pills-department-tab"
                             data-toggle="pill"
                             href="#v-pills-department"
@@ -2290,7 +2290,6 @@ function Setting() {
                           role="tabpanel"
                           aria-labelledby="v-pills-department-tab"
                         >
-
                           <form onSubmit={agentSubmit}>
                             <div className="col-sm-12 col-xs-12 pt-3">
                               <div className="service-con">
@@ -2349,7 +2348,7 @@ function Setting() {
                                             className="form-control"
                                             onChange={handleContactNoChange}
                                             // onChange={(e) =>
-                                            //   setFormData({ 
+                                            //   setFormData({
                                             //     ...formData,
                                             //     agent_mobile: e.target.value,
                                             //   })
@@ -2381,7 +2380,7 @@ function Setting() {
                                           />
                                         </div>
                                       </div>
-                                      <div className="col-md-4" >
+                                      <div className="col-md-4">
                                         <div className="form-group">
                                           <select
                                             value={formData?.agent_status}
@@ -2402,83 +2401,108 @@ function Setting() {
                                         </div>
                                       </div>
 
-                                      <div className="col-md-4" style={{display:assigntlnonetype}}>
+                                      <div
+                                        className="col-md-4"
+                                        style={{ display: assigntlnonetype }}
+                                      >
                                         <div className="form-group">
                                           <select
                                             value={formData?.role}
                                             className="form-control"
-                                              onChange={UserType}
+                                            onChange={UserType}
                                             name="role"
                                             id="aroll"
                                           >
                                             <option value>User Type</option>
                                             <option value="user">Agent</option>
-                                            <option value="TeamLeader">Team Leader</option>
-                                            <option value="GroupLeader">Group Leader</option>
+                                            <option value="TeamLeader">
+                                              Team Leader
+                                            </option>
+                                            <option value="GroupLeader">
+                                              Group Leader
+                                            </option>
                                           </select>
                                         </div>
                                       </div>
-                                     {formData?.role=="user"&& <div className="col-md-4" style={{display:assigntlnone}}>
-                                        <div className="form-group">
-                                          <select
-                                            value={formData?.assigntl}
-                                            className="form-control"
-                                            onChange={(e) =>
-                                              setFormData({
-                                                ...formData,
-                                                assigntl: e.target.value,
-                                              })
-                                            }
-                                            name="assigntl"
-                                            id="aroll"
-                                          >
-
-                                            <option value>Assignn Team Leader</option>
-                                            {/* {TeamLeader?.map((TeamLeader1)=>{  
+                                      {formData?.role == "user" && (
+                                        <div
+                                          className="col-md-4"
+                                          style={{ display: assigntlnone }}
+                                        >
+                                          <div className="form-group">
+                                            <select
+                                              value={formData?.assigntl}
+                                              className="form-control"
+                                              onChange={(e) =>
+                                                setFormData({
+                                                  ...formData,
+                                                  assigntl: e.target.value,
+                                                })
+                                              }
+                                              name="assigntl"
+                                              id="aroll"
+                                            >
+                                              <option value>
+                                                Assignn Team Leader
+                                              </option>
+                                              {/* {TeamLeader?.map((TeamLeader1)=>{  
                                               return(<option value={TeamLeader1?._id}>{TeamLeader1?.agent_name}</option>);
                                             })} */}
-                                            {TeamLeader?.filter((leader) => leader.role === "TeamLeader")?.map((TeamLeader1) => (
-                                            <option key={TeamLeader1?._id} value={TeamLeader1?._id}>
-                                              {TeamLeader1?.agent_name}
-                                            </option>
-                                          ))}
-                                          </select>
+                                              {TeamLeader?.filter(
+                                                (leader) =>
+                                                  leader.role === "TeamLeader"
+                                              )?.map((TeamLeader1) => (
+                                                <option
+                                                  key={TeamLeader1?._id}
+                                                  value={TeamLeader1?._id}
+                                                >
+                                                  {TeamLeader1?.agent_name}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </div>
                                         </div>
-                                      </div>}
-                                            {/** by sanjiv select team leaders  */}
+                                      )}
+                                      {/** by sanjiv select team leaders  */}
                                       {/* {formData?.role=="GroupLeader"&&<div className="col-md-4" > */}
-                                      
-                                      {/*   by juhi  */}
-                                      {formData?.role=="TeamLeader"&&<div className="col-md-4" >
-                                        <div className="form-group">
-                                          <select
-                                          
-                                            value={formData?.assigntl}
-                                            className="form-control"
-                                            onChange={(e) =>
-                                              setFormData({
-                                                ...formData,
-                                                assigntl: e.target.value,
-                                              })
-                                            }
-                                            name="assigntl"
-                                            id="aroll"
-                                          >
 
-                                            <option value>Assign Group Leader</option>
-                                            {/* {TeamLeader?.map((TeamLeader1)=>{  
+                                      {/*   by juhi  */}
+                                      {formData?.role == "TeamLeader" && (
+                                        <div className="col-md-4">
+                                          <div className="form-group">
+                                            <select
+                                              value={formData?.assigntl}
+                                              className="form-control"
+                                              onChange={(e) =>
+                                                setFormData({
+                                                  ...formData,
+                                                  assigntl: e.target.value,
+                                                })
+                                              }
+                                              name="assigntl"
+                                              id="aroll"
+                                            >
+                                              <option value>
+                                                Assign Group Leader
+                                              </option>
+                                              {/* {TeamLeader?.map((TeamLeader1)=>{  
                                               return(<option value={TeamLeader1?._id}>{TeamLeader1?.agent_name}</option>);
                                             })} */}
-                                            {TeamLeader?.filter(leader => leader.role === "GroupLeader") // Filter by role
-                                          .map((filteredLeader) => (
-                                            <option key={filteredLeader._id} value={filteredLeader._id}>
-                                              {filteredLeader.agent_name}
-                                            </option>
-                                          ))}
-                                            
-                                          </select>
+                                              {TeamLeader?.filter(
+                                                (leader) =>
+                                                  leader.role === "GroupLeader"
+                                              ) // Filter by role
+                                                .map((filteredLeader) => (
+                                                  <option
+                                                    key={filteredLeader._id}
+                                                    value={filteredLeader._id}
+                                                  >
+                                                    {filteredLeader.agent_name}
+                                                  </option>
+                                                ))}
+                                            </select>
 
-                                        {/* <Select
+                                            {/* <Select
                                               closeMenuOnSelect={false}
                                               // components={animatedComponents}
                                               defaultValue={[]}
@@ -2497,8 +2521,9 @@ function Setting() {
                                                 }))
                                               }
                                             /> */}
+                                          </div>
                                         </div>
-                                      </div>}
+                                      )}
 
                                       {/* <div className="col-md-3">
                                         <div className="form-group">
@@ -2544,15 +2569,20 @@ function Setting() {
                                         </div>
                                       </div>
                                       <div className="col-md-3 d-none">
-                                        <div className="form-group" style={{ marginTop: '10px' }}>
-                                          {  }
-                                          <b >Remaining User Count :</b> <b>{hostings["0"]?.Package - agent?.agent?.length}</b>
+                                        <div
+                                          className="form-group"
+                                          style={{ marginTop: "10px" }}
+                                        >
+                                          {}
+                                          <b>Remaining User Count :</b>{" "}
+                                          <b>
+                                            {hostings["0"]?.Package -
+                                              agent?.agent?.length}
+                                          </b>
                                         </div>
                                       </div>
                                     </div>
-                                  </div>   
-
-
+                                  </div>
 
                                   <div className="row">
                                     <div className="col-md-12">
@@ -2575,10 +2605,10 @@ function Setting() {
                                               </th>
                                               <th className="sorting">Roll</th>
                                               <th className="sorting">
-                                               Assign To
+                                                Assign To
                                               </th>
-                                             
-                                               <th className="sorting">
+
+                                              <th className="sorting">
                                                 Action
                                               </th>
                                             </tr>
@@ -2602,7 +2632,13 @@ function Setting() {
                                                   var client_access1 =
                                                     "checked";
                                                 }
-                                                const matchingAgentRole = agent?.agent.find(a => a._id === agents?.agent_details[0]?._id)?.role || "Role not found";
+                                                const matchingAgentRole =
+                                                  agent?.agent.find(
+                                                    (a) =>
+                                                      a._id ===
+                                                      agents?.agent_details[0]
+                                                        ?._id
+                                                  )?.role || "Role not found";
                                                 return (
                                                   <tr
                                                     role="row"
@@ -2630,11 +2666,14 @@ function Setting() {
                                                     </td>
 
                                                     <td className="sorting_1">
-                                                       {agents?.agent_details[0]?.agent_name}
+                                                      {
+                                                        agents?.agent_details[0]
+                                                          ?.agent_name
+                                                      }
 
-                                                       
-                                                       {matchingAgentRole !== "Role not found" && ` (${matchingAgentRole})`}
-                                                        
+                                                      {matchingAgentRole !==
+                                                        "Role not found" &&
+                                                        ` (${matchingAgentRole})`}
                                                     </td>
                                                     {/* <td className="sorting_1">
                                                       Client Access
@@ -2648,7 +2687,7 @@ function Setting() {
                                                     {/* <td className="sorting_1">
                                                       {lllll}
                                                     </td> */}
-                                                    
+
                                                     <td>
                                                       <button
                                                         type="button"
@@ -2669,12 +2708,14 @@ function Setting() {
                                                         ></i>
                                                       </button> */}
 
-
                                                       <button
                                                         type="button"
                                                         className="btn btn-success btn-x"
                                                         onClick={(e) =>
-                                                          editagent(agents?._id,agents?.role)
+                                                          editagent(
+                                                            agents?._id,
+                                                            agents?.role
+                                                          )
                                                         }
                                                       >
                                                         <i
@@ -2697,22 +2738,38 @@ function Setting() {
                             </div>
                           </form>
                           {/* modal */}
-                          <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div
+                            class="modal fade"
+                            id="exampleModal"
+                            tabindex="-1"
+                            role="dialog"
+                            aria-labelledby="exampleModalLabel"
+                            aria-hidden="true"
+                          >
                             <div class="modal-dialog" role="document">
                               <div class="modal-content">
                                 <div class="modal-header">
-                                  <h5 class="modal-title" id="exampleModalLabel">Transfer Your All Lead To Other Agent</h5>
-                                  <button type="button" class="close" onClick={() => {
-                                    window.$('#exampleModal').modal('hide');
-                                  }}
-                                    data-dismiss="modal" aria-label="Close">
+                                  <h5
+                                    class="modal-title"
+                                    id="exampleModalLabel"
+                                  >
+                                    Transfer Your All Lead To Other Agent
+                                  </h5>
+                                  <button
+                                    type="button"
+                                    class="close"
+                                    onClick={() => {
+                                      window.$("#exampleModal").modal("hide");
+                                    }}
+                                    data-dismiss="modal"
+                                    aria-label="Close"
+                                  >
                                     <span aria-hidden="true">&times;</span>
                                   </button>
                                 </div>
                                 <div class="modal-body">
                                   <form onSubmit={LeadTransfer}>
                                     <div className="row">
-
                                       <div className="col-md-12">
                                         <div className="form-group">
                                           <select
@@ -2731,22 +2788,30 @@ function Setting() {
                                               (agents, key) => {
                                                 if (agents?._id == idToDelete) {
                                                 } else {
-                                                  return (<option value={agents?._id}>{agents?.agent_name}</option>);
+                                                  return (
+                                                    <option value={agents?._id}>
+                                                      {agents?.agent_name}
+                                                    </option>
+                                                  );
                                                 }
-                                              })}
+                                              }
+                                            )}
                                           </select>
                                         </div>
                                       </div>
                                       <div className="col-md-12">
                                         <div className="form-group">
-                                          <button type="submit" class="btn btn-primary">Transfer</button>
+                                          <button
+                                            type="submit"
+                                            class="btn btn-primary"
+                                          >
+                                            Transfer
+                                          </button>
                                         </div>
                                       </div>
-
                                     </div>
                                   </form>
                                 </div>
-
                               </div>
                             </div>
                           </div>
@@ -3047,25 +3112,23 @@ function Setting() {
                                                   }
                                                 };
 
-                                                const getStatusBadgeClassdeleteremove = (
-                                                  statusName
-                                                ) => {
-                                                  switch (statusName) {
-                                                    case "65a904e04473619190494482": {
-                                                      return "d-none";
-                                                    }
-                                                    case "65a904ed4473619190494484": {
-                                                      return "d-none";
-                                                    }
-                                                    case "65a904fc4473619190494486": {
-                                                      return "d-none";
-                                                    }
-                                                    
+                                                const getStatusBadgeClassdeleteremove =
+                                                  (statusName) => {
+                                                    switch (statusName) {
+                                                      case "65a904e04473619190494482": {
+                                                        return "d-none";
+                                                      }
+                                                      case "65a904ed4473619190494484": {
+                                                        return "d-none";
+                                                      }
+                                                      case "65a904fc4473619190494486": {
+                                                        return "d-none";
+                                                      }
 
-                                                    default:
-                                                      return ""; // Default class for other statuses
-                                                  }
-                                                };
+                                                      default:
+                                                        return ""; // Default class for other statuses
+                                                    }
+                                                  };
 
                                                 const handleStatusDelete =
                                                   () => {

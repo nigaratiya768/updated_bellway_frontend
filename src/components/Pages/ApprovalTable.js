@@ -31,19 +31,14 @@ export const ApprovalTable = ({
   const { Statusdata } = useSelector((state) => state.StatusData);
   const apiUrl = process.env.REACT_APP_API_URL;
   const DBuUrl = process.env.REACT_APP_DB_URL;
-  const [selectedRow, setSelectedRow] = useState(null); 
-  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [dataa, setData] = useState({
     followup_date: new Date(), // Initialize with the current date
   });
   // console.log('agentssssssssssss',agents)
   const handlePageChange = (page) => {
     setCurrentPage(page); // Update current page state when page changes
-  };
-
-  const handleQuickEdit = (row) => {
-    setSelectedRow(row); // Set the row data
-    setIsModalOpen(true); // Open the modal
   };
 
   const handleCloseModal = () => {
@@ -69,7 +64,7 @@ export const ApprovalTable = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
-  
+
     // Function to convert local time to UTC by removing the time zone offset
     // const followupDate = dataa.followup_date;
     const followupDate = selectedRow?.followup_date;
@@ -78,36 +73,36 @@ export const ApprovalTable = ({
       toast.warn("Followup date is required");
       return;
     }
-  
+
     // Convert followupDate to ISO string without timezone adjustment
-    const adjustedFollowupDate = new Date(followupDate).toISOString().slice(0, 16);
-  
-  
+    const adjustedFollowupDate = new Date(followupDate)
+      .toISOString()
+      .slice(0, 16);
+
     // Collect form data
     const updatedLeadData = {
       lead_id: selectedRow._id,
-      commented_by: selectedRow?.agent_details[0]?._id || '',
-      followup_status_id: selectedRow.status_details[0]?._id || '',
-      
+      commented_by: selectedRow?.agent_details[0]?._id || "",
+      followup_status_id: selectedRow.status_details[0]?._id || "",
+
       // Convert followup_date to UTC before submitting
-      followup_date: adjustedFollowupDate ,
-      
+      followup_date: adjustedFollowupDate,
+
       followup_won_amount: selectedRow.followup_won_amount || 0,
-      followup_lost_reason_id: selectedRow.followup_lost_reason_id || '',
+      followup_lost_reason_id: selectedRow.followup_lost_reason_id || "",
       add_to_calender: selectedRow.add_to_calender || false,
-      followup_desc: selectedRow.description || '',
+      followup_desc: selectedRow.description || "",
     };
-  
+
     console.log("Submitting data:", updatedLeadData);
-  
+
     try {
       const response = await dispatch(addfollowup(updatedLeadData));
       if (response.payload.success) {
         toast.success(response.payload?.message);
         // Simulate page refresh effect
-        // handleCloseModal(); 
+        // handleCloseModal();
         window.location.reload();
-        
       } else {
         toast.warn(response.payload?.message);
         window.location.reload();
@@ -118,38 +113,48 @@ export const ApprovalTable = ({
     }
   };
 
-  const parseDate = (dateString) => {
-    const date = new Date(dateString);
-    return isNaN(date.getTime()) ? null : date;
-  };
-  
   const quickEditModal = (
     <div
-      className={`modal fade ${isModalOpen ? 'show' : ''}`}
-      style={{ display: isModalOpen ? 'block' : 'none' }}
+      className={`modal fade ${isModalOpen ? "show" : ""}`}
+      style={{ display: isModalOpen ? "block" : "none" }}
       aria-labelledby="quickEditModalLabel"
       aria-hidden={!isModalOpen}
     >
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title" id="quickEditModalLabel">Quick Edit</h5>
-            <button type="button" className="btn-close" onClick={handleCloseModal}></button>
+            <h5 className="modal-title" id="quickEditModalLabel">
+              Quick Edit
+            </h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={handleCloseModal}
+            ></button>
           </div>
           <div className="modal-body">
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label htmlFor="lastComment" className="form-label">Last Comment</label>
+                <label htmlFor="lastComment" className="form-label">
+                  Last Comment
+                </label>
                 <textarea
                   id="lastComment"
                   className="form-control"
                   value={selectedRow?.description || ""}
-                  onChange={(e) => setSelectedRow({ ...selectedRow, description: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedRow({
+                      ...selectedRow,
+                      description: e.target.value,
+                    })
+                  }
                 />
               </div>
-             
+
               <div className="mb-3">
-                <label htmlFor="followupDateTime" className="form-label">Follow-up Date and Time</label>
+                <label htmlFor="followupDateTime" className="form-label">
+                  Follow-up Date and Time
+                </label>
                 {/* <input
                   type="datetime-local"
                   id="followupDateTime"
@@ -157,43 +162,65 @@ export const ApprovalTable = ({
                   value={selectedRow?.followup_date ? formatDateToLocal(selectedRow.followup_date) : ""}
                   onChange={(e) => setSelectedRow({ ...selectedRow, followup_date: e.target.value })}
                 /> */}
-                 <DatePicker
-                      // selected={dataa.followup_date}
-                      // onChange={(date) => setData({ ...selectedRow, followup_date: date })}
-                      selected={selectedRow?.followup_date ? new Date(selectedRow.followup_date) : null}
-                      onChange={(date) => setSelectedRow({ ...selectedRow, followup_date: date })}
-                      showTimeSelect
-                      timeFormat="hh:mm aa"
-                      timeIntervals={5}
-                      timeCaption="Time"
-                      dateFormat="dd/MM/yyyy h:mm aa" // Custom format: day/month/year and 12-hour time
-                      className="form-control"
-                      placeholderText="Followup date"
-                      name="followup_date"
-                      id="followup_date"
-                    />
+                <DatePicker
+                  // selected={dataa.followup_date}
+                  // onChange={(date) => setData({ ...selectedRow, followup_date: date })}
+                  selected={
+                    selectedRow?.followup_date
+                      ? new Date(selectedRow.followup_date)
+                      : null
+                  }
+                  onChange={(date) =>
+                    setSelectedRow({ ...selectedRow, followup_date: date })
+                  }
+                  showTimeSelect
+                  timeFormat="hh:mm aa"
+                  timeIntervals={5}
+                  timeCaption="Time"
+                  dateFormat="dd/MM/yyyy h:mm aa" // Custom format: day/month/year and 12-hour time
+                  className="form-control"
+                  placeholderText="Followup date"
+                  name="followup_date"
+                  id="followup_date"
+                />
               </div>
-  
+
               <div className="mb-3">
-                <label htmlFor="status" className="form-label">Change Status</label>
+                <label htmlFor="status" className="form-label">
+                  Change Status
+                </label>
                 <select
                   id="status"
                   className="form-control"
                   value={selectedRow?.status_details[0]?._id || ""}
-                  onChange={(e) => setSelectedRow({ ...selectedRow, status_details: [{ _id: e.target.value }] })}
+                  onChange={(e) =>
+                    setSelectedRow({
+                      ...selectedRow,
+                      status_details: [{ _id: e.target.value }],
+                    })
+                  }
                 >
                   <option value="">Select Status</option>
-                  {Statusdata.leadstatus?.map((status) => (
-                    <option key={status._id} value={status._id}>
-                      {status.status_name}
-                    </option>
-                  ))}
+                  {Statusdata &&
+                    Statusdata?.leadstatus?.map((status) => (
+                      <option key={status._id} value={status._id}>
+                        {status.status_name}
+                      </option>
+                    ))}
                 </select>
               </div>
-  
+
               <div className="modal-footer">
-                <button type="submit" className="btn btn-primary">Submit</button>
-                <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>Close</button>
+                <button type="submit" className="btn btn-primary">
+                  Submit
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleCloseModal}
+                >
+                  Close
+                </button>
               </div>
             </form>
           </div>
@@ -202,19 +229,20 @@ export const ApprovalTable = ({
     </div>
   );
 
-  const [approv ,setapprove]=useState([]);
-  const approval = async ()=>{
-    let responce = await axios.get(`${apiUrl}/getapproval/`,{
-      headers:{
-        "Content-Type":"application/json",
+  const [approv, setapprove] = useState([]);
+  const approval = async () => {
+    let responce = await axios.get(`${apiUrl}/getapproval/`, {
+      headers: {
+        "Content-Type": "application/json",
       },
     });
-    setapprove(responce.data); 
-    console.log('jhjhjhjjhjhjhhj',responce.data)
-  }
-  useEffect(()=>{
+    setapprove(responce.data);
+    //setfilterleads(responce.data);
+    console.log("jhjhjhjjhjhjhhj", responce.data);
+  };
+  useEffect(() => {
     approval();
-  },[])
+  }, []);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -228,28 +256,6 @@ export const ApprovalTable = ({
     fetchData();
   }, []);
 
-  const getAllLead = async () => {
-    try {
-      const responce = await axios.get(
-        `${apiUrl}/get_all_lead?isHotLead=${isHotLead}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "mongodb-url": DBuUrl,
-            Authorization: "Bearer " + localStorage.getItem("token"),
-          },
-        }
-      );
-      setstatus(responce?.data?.success);
-      setleads(responce?.data?.lead);
-      setfilterleads(responce?.data?.lead);
-      return responce?.data?.message;
-    } catch (error) {
-      console.log(error);
-      setfilterleads();
-    }
-  };
-
   const getAllLead1 = async () => {
     try {
       const responce = await axios.get(`${apiUrl}/get_All_Lead_Followup`, {
@@ -262,13 +268,15 @@ export const ApprovalTable = ({
       const leads = responce?.data?.lead;
       // console.log(leads)
 
+      console.log("++++++++++++++++++lead 1 +++++++++++++++", leads);
+
       const filteredLeads = responce?.data?.lead?.filter(
         // (lead) => lead?.type !== "excel"
-        (lead) => lead?.type !== "excel" && 
-                  (
-                   lead?.status_details[0]?.status_name === "Meeting done")
+        (lead) =>
+          lead?.type !== "excel" &&
+          lead?.status_details[0]?.status_name.toLowerCase() === "meeting done"
       );
-
+      console.log("+++++++++++====================", filteredLeads);
       setstatus(responce?.data?.success);
       setleads(filteredLeads);
       setfilterleads(filteredLeads);
@@ -290,9 +298,9 @@ export const ApprovalTable = ({
       });
       const filteredLeads = responce?.data?.lead?.filter(
         // (lead) => lead?.type !== "excel"
-        (lead) => lead?.type !== "excel" && 
-                  (
-                   lead?.status_details[0]?.status_name === "Meeting done")
+        (lead) =>
+          lead?.type !== "excel" &&
+          lead?.status_details[0]?.status_name.toLowerCase() === "meeting done"
       );
       if (responce?.data?.success === true) {
         setstatus(responce?.data?.success);
@@ -328,46 +336,10 @@ export const ApprovalTable = ({
       );
       const filteredLeads = responce?.data?.lead?.filter(
         // (lead) => lead?.type !== "excel"
-        (lead) => lead?.type !== "excel" && 
-                  (
-                   lead?.status_details[0]?.status_name === "Meeting done")
+        (lead) =>
+          lead?.type !== "excel" &&
+          lead?.status_details[0]?.status_name.toLowerCase() === "meeting done"
       );
-      if (responce?.data?.success === true) {
-        setleads(filteredLeads);
-        setfilterleads(filteredLeads);
-        return responce?.data?.message;
-      }
-    } catch (error) {
-      console.log(error);
-      setfilterleads();
-    }
-  };
-
-  /// group leader 
-  const getAllLead44 = async (assign_to_agent) => {
-    try {
-      const responce = await axios.post(
-        `${apiUrl}/getLeadbyGroupLeaderidandwithoutstatus`,
-        {
-          assign_to_agent,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "mongodb-url": DBuUrl,
-            Authorization: "Bearer " + localStorage.getItem("token"),
-          },
-        }
-      );
-
-      const filteredLeads = responce?.data?.lead?.filter(
-        // (lead) => lead?.type !== "excel"
-        (lead) => lead?.type !== "excel" && 
-                  (
-                   lead?.status_details[0]?.status_name === "Meeting done")
-      );
-   
-
       if (responce?.data?.success === true) {
         setleads(filteredLeads);
         setfilterleads(filteredLeads);
@@ -381,6 +353,7 @@ export const ApprovalTable = ({
 
   const getAllLead4 = async (assign_to_agent) => {
     try {
+      console.log("====================================================");
       const approvalData = await axios.get(`${apiUrl}/getapproval`, {
         headers: {
           "Content-Type": "application/json",
@@ -389,8 +362,8 @@ export const ApprovalTable = ({
         },
       });
       const approvedLeadIds = approvalData.data
-        .filter(approval => approval.status === "approved")
-        .map(approval => approval.lead_id);
+        .filter((approval) => approval.status === "approved")
+        .map((approval) => approval.lead_id);
       const responce = await axios.post(
         `${apiUrl}/getLeadbyGroupLeaderidandwithoutstatus`,
         {
@@ -404,11 +377,15 @@ export const ApprovalTable = ({
           },
         }
       );
-      const filteredLeads = responce?.data?.lead?.filter(lead => 
-        approvedLeadIds.includes(lead._id) && 
-        lead?.status_details[0]?.status_name === "Meeting done"
+
+      console.log("-----------approved ids----------", approvedLeadIds);
+      console.log("++++++++++++++++++++++leads+++++++++++++++", responce.data);
+      const filteredLeads = responce?.data?.lead?.filter(
+        (lead) =>
+          approvedLeadIds.includes(lead._id) &&
+          lead?.status_details[0]?.status_name.toLowerCase() === "meeting done"
       );
-  
+      console.log("==================done===================", filteredLeads);
       setstatus(responce?.data?.success);
       setleads(filteredLeads);
       setfilterleads(filteredLeads);
@@ -435,8 +412,7 @@ export const ApprovalTable = ({
           assign_to_agent: localStorage.getItem("user_id"),
         })
       );
-    } 
-    else {
+    } else {
       getAllLead2(localStorage.getItem("user_id"));
       dispatch(
         getAllAgent({ assign_to_agent: localStorage.getItem("user_id") })
@@ -445,7 +421,6 @@ export const ApprovalTable = ({
 
     dispatch(getAllStatus());
   }, [localStorage.getItem("user_id")]);
-
 
   useEffect(() => {
     const result = leads.filter((lead) => {
@@ -547,8 +522,6 @@ export const ApprovalTable = ({
     sendDataToParent(selectedRowIds1);
   }, [selectedRowIds1]);
 
-
-  
   const commonColumns = [
     {
       name: "Checkbox",
@@ -644,11 +617,10 @@ export const ApprovalTable = ({
   //       setError(error);
   //     });
   // };
- 
+
   const role = localStorage.getItem("role");
   const user_id = localStorage.getItem("user_id");
   const adminColumns = [
-   
     {
       name: "Status",
       selector: (row) => row?.status_details[0]?.status_name,
@@ -658,11 +630,13 @@ export const ApprovalTable = ({
     {
       name: "Followup date",
       selector: (row) =>
-        row?.followup_date
-          ? (<div style={{ display: "" }}>
-              {getdatetimeformate(row?.followup_date)}
-            </div>)
-          : "",
+        row?.followup_date ? (
+          <div style={{ display: "" }}>
+            {getdatetimeformate(row?.followup_date)}
+          </div>
+        ) : (
+          ""
+        ),
       sortable: true,
     },
     {
@@ -671,24 +645,24 @@ export const ApprovalTable = ({
       sortable: true,
       cell: (row) => <div style={{ display: "none" }}>{row.description}</div>,
     },
-    
+
     {
       name: <div>Approval by GM</div>,
       // selector: (row) => row?.approval_status,
       sortable: true,
       cell: (row) => {
-        
-        const isApproved = approv.some(approval => 
-          approval.lead_id === row?._id && 
-          approval.assign_to_agent === row?.agent_details[0]?._id && 
-          approval.status === "approved"&&
-          approval.role === "GroupLeader" 
+        const isApproved = approv.some(
+          (approval) =>
+            approval.lead_id === row?._id &&
+            approval.assign_to_agent === row?.agent_details[0]?._id &&
+            approval.status === "approved" &&
+            approval.role === "GroupLeader"
           // approval.user_id === user_id
         );
-    
+
         return (
           <button
-            className={`btn btn-${ isApproved ? "success" : "danger"}`}
+            className={`btn btn-${isApproved ? "success" : "danger"}`}
             disabled
           >
             {isApproved ? "Approved" : "Not Approved"}
@@ -701,19 +675,18 @@ export const ApprovalTable = ({
       // selector: (row) => row?.approval_status,
       sortable: true,
       cell: (row) => {
-        
-        const isApproved = approv.some(approval => 
-          approval.lead_id === row?._id && 
-          approval.assign_to_agent === row?.agent_details[0]?._id && 
-          approval.status === "approved"&&
-          approval.role === "TeamLeader" 
+        const isApproved = approv.some(
+          (approval) =>
+            approval.lead_id === row?._id &&
+            approval.assign_to_agent === row?.agent_details[0]?._id &&
+            approval.status === "approved" &&
+            approval.role === "TeamLeader"
           // approval.user_id === user_id
         );
-        
-    
+
         return (
           <button
-            className={`btn btn-${ isApproved ? "success" : "danger"}`}
+            className={`btn btn-${isApproved ? "success" : "danger"}`}
             disabled
           >
             {isApproved ? "Approved" : "Not Approved"}
@@ -721,7 +694,7 @@ export const ApprovalTable = ({
         );
       },
     },
-    
+
     {
       name: "Action",
       cell: (row) => (
@@ -764,115 +737,6 @@ export const ApprovalTable = ({
       sortable: true,
     },
   ];
- 
-
-  // console.log('aaaa',agents)
-
-  // const userColumns = [
-  //   {
-  //     name: "Status",
-  //     selector: (row) => row?.status_details[0]?.status_name,
-  //     sortable: true,
-  //   },
-  //   {
-  //     name: <div style={{ display: "" }}>Last Comment</div>,
-  //     selector: (row) => row?.description,
-  //     sortable: true,
-  //     cell: (row) => <div style={{ display: "" }}>{row.description}</div>,
-  //   },
-    
-  //   {
-  //     // name: "Followup date",
-  //     name: <div style={{ display: "none" }}>Followup date</div>,
-  //     selector: (row) =>
-  //       row?.followup_date
-  //         ? (<div style={{display:"none"}} >{getdatetimeformate(row?.followup_date)}</div>) 
-          
-  //         //  row?.followup_date && format(new Date(datafomate(row?.followup_date)), 'dd/MM/yy hh:mm:ss')
-            
-  //         : (
-  //           ""
-  //         ),
-  //     sortable: true,
-  //   },
-  //   {
-  //     name: <div>Approval by GM</div>,
-  //     // selector: (row) => row?.approval_status,
-  //     sortable: true,
-  //     cell: (row) => {
-        
-  //       const isApproved = approv.some(approval => 
-  //         approval.lead_id === row?._id && 
-  //         approval.assign_to_agent === row?.agent_details[0]?._id && 
-  //         approval.status === "approved"&&
-  //         approval.role === "GroupLeader"
-  //         // approval.user_id === user_id
-  //       );
-    
-  //       return (
-  //         <button
-  //           className={`btn btn-${ isApproved ? "success" : "danger"}`}
-  //           disabled
-  //         >
-  //           {isApproved ? "Approved" : "Not Approved"}
-  //         </button>
-  //       );
-  //     },
-  //   },
-  //   {
-  //     name: <div>Approval by TL</div>,
-  //     // selector: (row) => row?.approval_status,
-  //     sortable: true,
-  //     cell: (row) => {
-        
-  //       const isApproved = approv.some(approval => 
-  //         approval.lead_id === row?._id && 
-  //         approval.assign_to_agent === row?.agent_details[0]?._id && 
-  //         approval.status === "approved"&&
-  //         approval.role === "TeamLeader"
-  //       );
-    
-  //       return (
-  //         <button
-  //           className={`btn btn-${ isApproved ? "success" : "danger"}`}
-  //           disabled
-  //         >
-  //           {isApproved ? "Approved" : "Not Approved"}
-  //         </button>
-  //       );
-  //     },
-  //   },
-    
-  //   {
-  //     name: "Action",
-  //     cell: (row) => (
-  //       <>
-  //         <a href={`/followupleads/${row?._id}`}>
-  //           <button className="btn btn-success">
-  //             <i className="fa fa-pencil-square" aria-hidden="true"></i>
-  //           </button>
-  //           <span
-  //             className={`badge ${getStatusBadgeClass(
-  //               row?.status_details[0]?.status_name
-  //             )}`}
-  //             style={{ marginLeft: "10px" }}
-  //           >
-  //             {row?.status_details[0]?.status_name == "Call Back & Hot Lead"
-  //               ? "Hot"
-  //               : row?.status_details[0]?.status_name == "Call Back"
-  //               ? "C"
-  //               : row?.status_details[0]?.status_name == "Meeting"
-  //               ? "M"
-  //               : ""}
-  //           </span>
-  //         </a>
-          
-  //       </>
-  //     ),
-  //     sortable: true,
-  //   },
-  // ];
-
   const userColumns = [
     {
       name: "Status",
@@ -885,22 +749,23 @@ export const ApprovalTable = ({
       sortable: true,
       cell: (row) => <div style={{ display: "" }}>{row.description}</div>,
     },
-    
+
     {
       name: "Followup date",
       selector: (row) =>
-        row?.followup_date
-          ? (<div style={{ display: "" }}>
-              {getdatetimeformate(row?.followup_date)}
-            </div>)
-          : "",
+        row?.followup_date ? (
+          <div style={{ display: "" }}>
+            {getdatetimeformate(row?.followup_date)}
+          </div>
+        ) : (
+          ""
+        ),
       sortable: true,
     },
     {
       name: "Approval by GM",
       sortable: true,
       cell: (row) => {
-     
         const isApprovedByGM = approv.some(
           (approval) =>
             approval.lead_id === row?._id &&
@@ -908,7 +773,7 @@ export const ApprovalTable = ({
             approval.status === "approved" &&
             approval.role === "GroupLeader"
         );
-  
+
         return (
           <button
             className={`btn btn-${isApprovedByGM ? "success" : "danger"}`}
@@ -930,7 +795,7 @@ export const ApprovalTable = ({
             approval.status === "approved" &&
             approval.role === "TeamLeader"
         );
-  
+
         return (
           <button
             className={`btn btn-${isApprovedByTL ? "success" : "danger"}`}
@@ -941,7 +806,7 @@ export const ApprovalTable = ({
         );
       },
     },
-  
+
     {
       name: "Action",
       cell: (row) => {
@@ -953,15 +818,12 @@ export const ApprovalTable = ({
             approval.status === "approved" &&
             approval.role === "TeamLeader"
         );
-    
+
         const actionButtonDisabled = !isApprovedByTL || isUserRole;
-    
+
         return (
           <a href={`/followupleads/${row?._id}`}>
-            <button
-              className="btn btn-success"
-              disabled={actionButtonDisabled} 
-            >
+            <button className="btn btn-success" disabled={actionButtonDisabled}>
               <i className="fa fa-pencil-square" aria-hidden="true"></i>
             </button>
             <span
@@ -982,65 +844,60 @@ export const ApprovalTable = ({
         );
       },
       sortable: true,
-    }
-    
-    
-    
+    },
   ];
-  
+
   if (role === "GroupLeader") {
-    
     userColumns.splice(3, 0, {
-      name:<div style={{ display: "" }}>TeamLeader</div>,
+      name: <div style={{ display: "" }}>TeamLeader</div>,
       selector: (row) => {
-       
-        const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
-    
+        const matchingAgent = agents.find(
+          (agent) => agent._id === row?.agent_details[0]?._id
+        );
+
         if (matchingAgent) {
-          
           if (matchingAgent.role === "TeamLeader") {
             return matchingAgent.agent_name;
           }
           if (matchingAgent.role === "GroupLeader") {
-            return `${matchingAgent.agent_name} (GM)`; 
-          }
-          
-          else if (matchingAgent.role === "user") {
-            return matchingAgent.agent_details.length > 0 
-            ? matchingAgent.agent_details[0].agent_name 
-            : "";
+            return `${matchingAgent.agent_name} (GM)`;
+          } else if (matchingAgent.role === "user") {
+            return matchingAgent.agent_details.length > 0
+              ? matchingAgent.agent_details[0].agent_name
+              : "";
           }
         }
-  
-  
+
         return "";
       },
       sortable: true,
     });
-    
-  userColumns.splice(4, 0, {
-    name: "Agent",
-    // selector: (row) => row?.agent_details[0]?.agent_name,
-    selector: (row) => {
-    
-      const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
 
-      return matchingAgent && matchingAgent.role === "user" ? matchingAgent.agent_name : "";
-    },
-    sortable: true,
-  });
+    userColumns.splice(4, 0, {
+      name: "Agent",
+      // selector: (row) => row?.agent_details[0]?.agent_name,
+      selector: (row) => {
+        const matchingAgent = agents.find(
+          (agent) => agent._id === row?.agent_details[0]?._id
+        );
+
+        return matchingAgent && matchingAgent.role === "user"
+          ? matchingAgent.agent_name
+          : "";
+      },
+      sortable: true,
+    });
   }
 
   if (role === "admin") {
-    
-
     adminColumns.splice(1, 0, {
       name: "GroupLeader",
       selector: (row) => {
-        const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
-    
+        const matchingAgent = agents.find(
+          (agent) => agent._id === row?.agent_details[0]?._id
+        );
+
         if (matchingAgent) {
-         
           if (matchingAgent.role === "GroupLeader") {
             return `${matchingAgent.agent_name}`;
           }
@@ -1051,64 +908,67 @@ export const ApprovalTable = ({
           }
           if (matchingAgent.role === "user") {
             const userAgentDetails = matchingAgent.agent_details;
-    
+
             if (userAgentDetails.length > 0) {
               const teamLeader = agents.find(
-                (agent) => agent._id === userAgentDetails[0]._id && agent.role === "TeamLeader"
+                (agent) =>
+                  agent._id === userAgentDetails[0]._id &&
+                  agent.role === "TeamLeader"
               );
               if (teamLeader.role === "TeamLeader") {
-                return teamLeader.agent_details.length > 0 
-                ? teamLeader.agent_details[0].agent_name 
-                : "";
+                return teamLeader.agent_details.length > 0
+                  ? teamLeader.agent_details[0].agent_name
+                  : "";
               }
             }
           }
         }
-    
+
         return "";
       },
       sortable: true,
     });
-    
+
     adminColumns.splice(2, 0, {
-      name:"TeamLeader",
+      name: "TeamLeader",
       selector: (row) => {
-       
-        const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
-    
+        const matchingAgent = agents.find(
+          (agent) => agent._id === row?.agent_details[0]?._id
+        );
+
         if (matchingAgent) {
-          
           if (matchingAgent.role === "TeamLeader") {
             return matchingAgent.agent_name;
           }
           // if (matchingAgent.role === "GroupLeader") {
-          //   return `${matchingAgent.agent_name} (GM)`; 
+          //   return `${matchingAgent.agent_name} (GM)`;
           // }
-          
           else if (matchingAgent.role === "user") {
-            return matchingAgent.agent_details.length > 0 
-            ? matchingAgent.agent_details[0].agent_name 
-            : "";
+            return matchingAgent.agent_details.length > 0
+              ? matchingAgent.agent_details[0].agent_name
+              : "";
           }
         }
-  
-  
+
         return "";
       },
       sortable: true,
     });
-    
-  adminColumns.splice(3, 0, {
-    name: "Agent",
-    // selector: (row) => row?.agent_details[0]?.agent_name,
-    selector: (row) => {
-    
-      const matchingAgent = agents.find((agent) => agent._id === row?.agent_details[0]?._id);
 
-      return matchingAgent && matchingAgent.role === "user" ? matchingAgent.agent_name : "";
-    },
-    sortable: true,
-  });
+    adminColumns.splice(3, 0, {
+      name: "Agent",
+      // selector: (row) => row?.agent_details[0]?.agent_name,
+      selector: (row) => {
+        const matchingAgent = agents.find(
+          (agent) => agent._id === row?.agent_details[0]?._id
+        );
+
+        return matchingAgent && matchingAgent.role === "user"
+          ? matchingAgent.agent_name
+          : "";
+      },
+      sortable: true,
+    });
   }
 
   if (role === "TeamLeader") {
@@ -1118,7 +978,7 @@ export const ApprovalTable = ({
       sortable: true,
     });
   }
-  
+
   const columns = isAdmin
     ? [...commonColumns, ...adminColumns]
     : [...commonColumns, ...userColumns];
@@ -1261,39 +1121,6 @@ export const ApprovalTable = ({
       });
   };
 
-  const exportToExcel1 = () => {
-    const columnsForExport = columns.map((column) => ({
-      title: column.name,
-      dataIndex: column.selector,
-    }));
-
-    const dataForExport = filterleads.map((row) =>
-      columns.map((column) => {
-        if (column.selector && typeof column.selector === "function") {
-          return column.selector(row);
-        }
-        return row[column.selector];
-      })
-    );
-
-    const exportData = [
-      columnsForExport.map((col) => col.title),
-      ...dataForExport,
-    ];
-    const blob = new Blob(
-      [exportData.map((row) => row.join("\t")).join("\n")],
-      {
-        type: "application/vnd.ms-excel",
-      }
-    );
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "table.xls";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const exportToExcel = () => {
     const columnsForExport = columns
       .filter((column) => column.name !== "Checkbox") // Remove the Checkbox column
@@ -1341,7 +1168,6 @@ export const ApprovalTable = ({
     setRowsPerPage(newValue);
   };
 
-
   const filtersiteleads = filterleads.filter((row) => {
     const isApprovedByGM = approv.some(
       (approval) =>
@@ -1359,102 +1185,40 @@ export const ApprovalTable = ({
     );
     return isApprovedByGM && isApprovedByTL;
   });
-  
-  // const exportSitevisit = () => {
-  //   const doc = new jsPDF();
-  //   const filteredUserColumns = userColumns.filter((column) => column.name !== "Action");
-  //   const selectedAdminColumns = adminColumns.filter((column) => {
-  //     return column.name === "GroupLeader" || column.name === "TeamLeader" || column.name === "Agent";
-  //   }).filter((column) => column.name !== "Action"); 
-  
-  //   const columnOrder = [
-  //     ...filteredUserColumns, 
-  //     ...selectedAdminColumns
-  //   ];
-  //   const mergedColumnNames = ["S.No", ...columnOrder.map((column) => 
-  //     typeof column.name === "string" 
-  //       ? column.name 
-  //       : column.name.props 
-  //         ? column.name.props.children 
-  //         : "Unknown Column"
-  //   )];
-  //   const tableDataForPDF = filtersiteleads.map((row, index) => {
-  //     const userColumnData = filteredUserColumns.map((column) => {
-  //       if (column.name === "Followup date") {
-  //         return row?.followup_date 
-  //           ? getdatetimeformate(row?.followup_date) 
-  //           : "";
-  //       }
-  //       if (column.name === "Approval by GM") {
-  //         const isApprovedByGM = approv.some(
-  //           (approval) =>
-  //             approval.lead_id === row?._id &&
-  //             approval.assign_to_agent === row?.agent_details[0]?._id &&
-  //             approval.status === "approved" &&
-  //             approval.role === "GroupLeader"
-  //         );
-  //         return isApprovedByGM ? "Approved" : "Not Approved";
-  //       }
-  
-  //       if (column.name === "Approval by TL") {
-  //         const isApprovedByTL = approv.some(
-  //           (approval) =>
-  //             approval.lead_id === row?._id &&
-  //             approval.assign_to_agent === row?.agent_details[0]?._id &&
-  //             approval.status === "approved" &&
-  //             approval.role === "TeamLeader"
-  //         );
-  //         return isApprovedByTL ? "Approved" : "Not Approved";
-  //       }
-  //       if (column.selector && typeof column.selector === "function") {
-  //         const value = column.selector(row);
-  //         return typeof value === "object" ? JSON.stringify(value) : value;
-  //       }
-  //       return row[column.selector];
-  //     });
-  
-  //     const adminColumnData = selectedAdminColumns.map((column) => {
-  //       if (column.selector && typeof column.selector === "function") {
-  //         const value = column.selector(row);
-  //         return typeof value === "object" ? JSON.stringify(value) : value;
-  //       }
-  //       return row[column.selector];
-  //     });
-  //     return [index + 1, ...userColumnData, ...adminColumnData];
-  //   });
-  //   doc.autoTable({
-  //     head: [mergedColumnNames],
-  //     body: tableDataForPDF,
-  //   });
-  //   doc.save("sitevisit.pdf");
-  // };
-  
   const exportSitevisit = () => {
     const doc = new jsPDF();
-  
-    const filteredUserColumns = userColumns.filter((column) => column.name !== "Action");
-    const selectedAdminColumns = adminColumns.filter((column) => {
-      return column.name === "GroupLeader" || column.name === "TeamLeader" || column.name === "Agent";
-    }).filter((column) => column.name !== "Action");
-  
-    const columnOrder = [
-      ...filteredUserColumns, 
-      ...selectedAdminColumns
-    ];
-  
-    const mergedColumnNames = ["S.No", ...columnOrder.map((column) =>
-      typeof column.name === "string" 
-        ? column.name 
-        : column.name.props 
-          ? column.name.props.children 
+
+    const filteredUserColumns = userColumns.filter(
+      (column) => column.name !== "Action"
+    );
+    const selectedAdminColumns = adminColumns
+      .filter((column) => {
+        return (
+          column.name === "GroupLeader" ||
+          column.name === "TeamLeader" ||
+          column.name === "Agent"
+        );
+      })
+      .filter((column) => column.name !== "Action");
+
+    const columnOrder = [...filteredUserColumns, ...selectedAdminColumns];
+
+    const mergedColumnNames = [
+      "S.No",
+      ...columnOrder.map((column) =>
+        typeof column.name === "string"
+          ? column.name
+          : column.name.props
+          ? column.name.props.children
           : "Unknown Column"
-    )];
-  
+      ),
+    ];
+
     const tableDataForPDF = filtersiteleads.map((row, index) => {
       const userColumnData = filteredUserColumns.map((column) => {
         if (column.name === "Followup date") {
-          return row?.followup_date 
-            ? getdatetimeformate(row?.followup_date) 
+          return row?.followup_date
+            ? getdatetimeformate(row?.followup_date)
             : "";
         }
         if (column.name === "Approval by GM") {
@@ -1467,7 +1231,7 @@ export const ApprovalTable = ({
           );
           return isApprovedByGM ? "Approved" : "Not Approved";
         }
-  
+
         if (column.name === "Approval by TL") {
           const isApprovedByTL = approv.some(
             (approval) =>
@@ -1484,7 +1248,7 @@ export const ApprovalTable = ({
         }
         return row[column.selector];
       });
-  
+
       const adminColumnData = selectedAdminColumns.map((column) => {
         if (column.selector && typeof column.selector === "function") {
           const value = column.selector(row);
@@ -1492,39 +1256,36 @@ export const ApprovalTable = ({
         }
         return row[column.selector];
       });
-  
+
       return [index + 1, ...userColumnData, ...adminColumnData];
     });
-  
+
     // Add a total row at the end of the table
     const totalRow = [
       "Total", // The first column ("S.No")
       ...new Array(mergedColumnNames.length - 1).fill(""), // Fill empty columns
     ];
     totalRow[1] = `Total Visits: ${filtersiteleads.length}`; // Add total downloads info in the second column
-  
+
     // Append the total row to the table data
     tableDataForPDF.push(totalRow);
-  
+
     // Generate the table
     doc.autoTable({
       head: [mergedColumnNames],
       body: tableDataForPDF,
     });
-  
+
     // Save the generated PDF
     doc.save("sitevisit.pdf");
   };
-  
-  
+
   return (
     <div>
-       
       <div
         className="row justify-content-md-center"
         style={{ display: dataFromParent }}
       >
-       
         <div className="col-md-12 advS">
           <form onSubmit={AdvanceSerch}>
             <div className="advfilter-wrap-box">
@@ -1618,20 +1379,17 @@ export const ApprovalTable = ({
             </div>
           </form>
         </div>
-        
       </div>
       <div className="row">
         <div className="col-md-12">
           <div className="export-wrap">
             {isAdmin1 ? (
               <>
-              <button 
-                    className="btn-ecport-pdf" 
-                    onClick={exportSitevisit}>
-                    Site visit report
-                  </button>
+                <button className="btn-ecport-pdf" onClick={exportSitevisit}>
+                  Site visit report
+                </button>
                 <button className="btn-ecport-pdf" onClick={exportToPDF}>
-                Export PDF
+                  Export PDF
                 </button>
                 <button className="btn-ecport-xls" onClick={exportToExcel}>
                   Export Excel

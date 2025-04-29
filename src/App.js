@@ -56,12 +56,15 @@ import Newloginpage from "./components/Pages/Newloginpage";
 import Login from "./components/Login";
 import UploadContactsWhatsapp from "./components/Pages/UploadContactsWhatsapp";
 import UploadContactsSms from "./components/Pages/UploadContactsSms";
-import { isValidToken } from "./utils/util";
+import { isValidToken, saveToken } from "./utils/util";
 import HotLeads from "./components/Pages/HotLead";
 import Approval from "./components/Pages/Approval";
 import { messaging } from "./firebase";
 
 import { getMessaging, getToken } from "firebase/messaging";
+import Attendence from "./components/Attendence";
+
+import NotificationPage from "./components/Pages/Notification";
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -74,14 +77,14 @@ function App() {
     } else if (Notification.permission === "granted") {
       // Check whether notification permissions have already been granted;
       // if so, create a notification
-      const notification = new Notification("Hi there!");
+      //const notification = new Notification("Hi there!");
       // …
     } else if (Notification.permission !== "denied") {
       // We need to ask the user for permission
       Notification.requestPermission().then((permission) => {
         // If the user accepts, let's create a notification
         if (permission === "granted") {
-          const notification = new Notification("Hi there!");
+          //const notification = new Notification("Hi there!");
           // …
         }
       });
@@ -117,6 +120,7 @@ function App() {
           // Send the token to your server and update the UI if necessary
           // ...
           console.log("current token", currentToken);
+          saveToken(currentToken);
         } else {
           // Show permission request UI
           console.log(
@@ -175,7 +179,10 @@ function App() {
 
                 <Route path="/ActiveLeads" element={<ActiveLeads />}></Route>
                 <Route path="/Allsmsleads" element={<Allsmsleads />}></Route>
-
+                <Route
+                  path="/notification"
+                  element={<NotificationPage />}
+                ></Route>
                 <Route
                   path="/ActiveLeadsWtsp"
                   element={<ActiveLeadsWtsp />}
@@ -203,7 +210,7 @@ function App() {
                   path="/newloginpage/:id"
                   element={<Newloginpage />}
                 ></Route>
-
+                <Route path="/attendence" element={<Attendence />}></Route>
                 <Route path="/buysms" element={<Buysms />}></Route>
                 <Route path="/BuysmsWtsp" element={<BuysmsWtsp />}></Route>
 

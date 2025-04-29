@@ -1,13 +1,13 @@
 import React from "react";
 import LineChart1 from "../LineChart1";
-import randomcolor from 'randomcolor';
+import randomcolor from "randomcolor";
 import Chart from "react-apexcharts";
 import { useState } from "react";
 import axios from "axios";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllProductService } from "../../features/product_serviceSlice";
-import { getAllAgent,getAllAgentWithData } from "../../features/agentSlice";
+import { getAllAgent, getAllAgentWithData } from "../../features/agentSlice";
 import DataTable from "react-data-table-component";
 export default function Callreport() {
   const [data, setdata] = useState([]);
@@ -15,27 +15,24 @@ export default function Callreport() {
   const [total, settotal] = useState([]);
   const { ProductService } = useSelector((state) => state.ProductService);
   var { agent } = useSelector((state) => state.agent);
-  const [llll,setllll]=useState('block');
-  const [llll1,setllll1]=useState('none');
+  const [llll, setllll] = useState("block");
+  const [llll1, setllll1] = useState("none");
   const dispatch = useDispatch();
-  const apiUrl = process.env.REACT_APP_API_URL;    
-  const DBuUrl = process.env.REACT_APP_DB_URL;   
+  const apiUrl = process.env.REACT_APP_API_URL;
+  const DBuUrl = process.env.REACT_APP_DB_URL;
   const getAllCallDetails = async () => {
     try {
-      const responce = await axios.get(
-        `${apiUrl}/GetAllUserCallLogById`,{
-          headers:{
-            "Content-Type": "application/json",
-            "mongodb-url":DBuUrl,
-          }
-        }
-      );
+      const responce = await axios.get(`${apiUrl}/GetAllUserCallLogById`, {
+        headers: {
+          "Content-Type": "application/json",
+          "mongodb-url": DBuUrl,
+        },
+      });
       setdata(responce?.data?.username);
       setdata1(responce?.data?.value);
-     
+
       console.log(responce?.data?.monthlyIncom);
     } catch (error) {
-     
       console.log(error);
     }
   };
@@ -43,39 +40,50 @@ export default function Callreport() {
   const getAllCallDetailsTeam = async () => {
     try {
       const responce = await axios.post(
-        `${apiUrl}/GetAllUserCallLogByIdTeam`,{ assign_to_agent: localStorage.getItem('user_id') },{
-          headers:{
+        `${apiUrl}/GetAllUserCallLogByIdTeam`,
+        { assign_to_agent: localStorage.getItem("user_id") },
+        {
+          headers: {
             "Content-Type": "application/json",
-            "mongodb-url":DBuUrl,
-          }
+            "mongodb-url": DBuUrl,
+          },
         }
       );
       setdata(responce?.data?.username);
       setdata1(responce?.data?.value);
-     
+
       console.log(responce?.data?.monthlyIncom);
     } catch (error) {
-     
       console.log(error);
     }
   };
 
   useEffect(() => {
-    if(localStorage.getItem("role")==='admin'){
+    if (localStorage.getItem("role") === "admin") {
       dispatch(getAllAgent());
       getAllCallDetails();
-     }
-     if (localStorage.getItem("role") === "TeamLeader") {
-      dispatch(getAllAgentWithData({assign_to_agent:localStorage.getItem("user_id")}));
+    }
+    if (localStorage.getItem("role") === "TeamLeader") {
+      dispatch(
+        getAllAgentWithData({
+          assign_to_agent: localStorage.getItem("user_id"),
+        })
+      );
       getAllCallDetailsTeam();
-    } 
-     if (localStorage.getItem("role") === "GroupLeader") {
-      dispatch(getAllAgentWithData({assign_to_agent:localStorage.getItem("user_id")}));
+    }
+    if (localStorage.getItem("role") === "GroupLeader") {
+      dispatch(
+        getAllAgentWithData({
+          assign_to_agent: localStorage.getItem("user_id"),
+        })
+      );
       getAllCallDetailsTeam();
-    } 
-    if(localStorage.getItem("role")==='user'){
-      dispatch(getAllAgent({assign_to_agent:localStorage.getItem("user_id")}));
-     }
+    }
+    if (localStorage.getItem("role") === "user") {
+      dispatch(
+        getAllAgent({ assign_to_agent: localStorage.getItem("user_id") })
+      );
+    }
   }, []);
   const [leads, setleads] = useState([]);
   const [search, setsearch] = useState("");
@@ -89,18 +97,18 @@ export default function Callreport() {
         `${apiUrl}/GetCallLogByIdAndDateRange`,
         search,
         {
-          headers:{
+          headers: {
             "Content-Type": "application/json",
-            "mongodb-url":DBuUrl,
-          }
+            "mongodb-url": DBuUrl,
+          },
         }
       );
 
       console.log(response?.data);
       setleads(response?.data?.CallLogs);
       setfilterleads(response?.data?.CallLogs);
-      setllll('none')
-      setllll1('block')
+      setllll("none");
+      setllll1("block");
     } catch (error) {
       console.error(error);
       setfilterleads([]);
@@ -186,7 +194,8 @@ export default function Callreport() {
       window.location.reload(false);
     }, 500);
   };
- 
+  console.log("data1", data1, "options", options);
+
   return (
     <div>
       <div className="content-wrapper">
@@ -233,29 +242,40 @@ export default function Callreport() {
                                             </option>
                                           );
                                         })} */}
-                                        <option value="">Select Employee</option>
+                                        <option value="">
+                                          Select Employee
+                                        </option>
 
-                                          {agent?.agent?.map((agents, key) => {
-                                            // If the logged-in user is 'admin', only show 'GroupLeader' options
-                                            if (localStorage.getItem("role") === 'GroupLeader') {
-                                              
-                                                return (
-                                                  <option key={key} value={agents._id}>
-                                                    {agents.agent_name} ({agents.role})
-                                                  </option>
-                                                );
-                                              
-                                            } else {
-                                              // For non-admin roles, display all agents
-                                              return (
-                                                <option key={key} value={agents._id}>
-                                                  {agents.agent_name} ({agents.role})
-                                                </option>
-                                              );
-                                            }
+                                        {agent?.agent?.map((agents, key) => {
+                                          // If the logged-in user is 'admin', only show 'GroupLeader' options
+                                          if (
+                                            localStorage.getItem("role") ===
+                                            "GroupLeader"
+                                          ) {
+                                            return (
+                                              <option
+                                                key={key}
+                                                value={agents._id}
+                                              >
+                                                {agents.agent_name} (
+                                                {agents.role})
+                                              </option>
+                                            );
+                                          } else {
+                                            // For non-admin roles, display all agents
+                                            return (
+                                              <option
+                                                key={key}
+                                                value={agents._id}
+                                              >
+                                                {agents.agent_name} (
+                                                {agents.role})
+                                              </option>
+                                            );
+                                          }
 
-                                            return null; // Return null for non-GroupLeader agents when role is admin
-                                          })}
+                                          return null; // Return null for non-GroupLeader agents when role is admin
+                                        })}
                                       </select>
                                     </div>
                                   </div>
@@ -305,16 +325,20 @@ export default function Callreport() {
                                       </button>
                                     </div>
                                   </div>
-                                  <div className="col-md-2 col-sm-12"  style={{ display:llll1}} >
-                              <div className="form-group">
-                                <button onClick={Refresh}
-                                  type="button"
-                                  className="btn btn-success button-57 form-control"
-                                >
-                                  Refresh
-                                </button>
-                              </div>
-                            </div>
+                                  <div
+                                    className="col-md-2 col-sm-12"
+                                    style={{ display: llll1 }}
+                                  >
+                                    <div className="form-group">
+                                      <button
+                                        onClick={Refresh}
+                                        type="button"
+                                        className="btn btn-success button-57 form-control"
+                                      >
+                                        Refresh
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
                               </form>
                             </div>
@@ -322,10 +346,25 @@ export default function Callreport() {
                         </div>
                         <div className="row">
                           <div className="col-12">
-                          <div className="col-lg-6 mx-auto">
-                          <Chart  options={options} series={data1} type="pie"  
-                    style={{width:'500px',height:'500px', display:llll}} />  
-</div>
+                            <div className="col-lg-6 mx-auto">
+                              {data1 &&
+                                data1.length > 0 &&
+                                options &&
+                                options.labels.length > 0 && (
+                                  <Chart
+                                    options={options}
+                                    series={data1}
+                                    // options={{ labels: ["abc", "xyz", "bcd"] }}
+                                    // series={[2, 4, 7]}
+                                    type="pie"
+                                    style={{
+                                      width: "500px",
+                                      height: "500px",
+                                      display: llll,
+                                    }}
+                                  />
+                                )}
+                            </div>
                           </div>
                         </div>
                         <div className="card-headers">

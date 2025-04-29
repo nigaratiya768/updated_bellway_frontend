@@ -19,13 +19,18 @@ function Header() {
   const DBuUrl = process.env.REACT_APP_DB_URL;
   const navigate = useNavigate();
   const [callBackLeadCount, setCallBackLeadCount] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(0);
   const Logout = async () => {
+    const response = await axios.put(`${apiUrl}/updateExitTime`, {
+      user_id: localStorage.getItem("user_id"),
+    });
     localStorage.removeItem("token");
     localStorage.removeItem("user_id");
     localStorage.removeItem("agent_name");
     localStorage.removeItem("agent_email");
     localStorage.removeItem("agent_mobile");
     localStorage.removeItem("role");
+
     await navigate("/login");
     setTimeout(() => {
       toast.warn("Logout Successfully");
@@ -67,53 +72,66 @@ function Header() {
       console.error(error);
     }
   };
+  const getNotificationCount = async () => {
+    try {
+      const id = localStorage.getItem("user_id");
+      const role = localStorage.getItem("role");
+      const response = await axios.get(
+        `${apiUrl}/get_notification_count?user_id=${id}&role=${role}`
+      );
+      setNotificationCount(response.data.count);
+    } catch (error) {
+      console.log("error in getnotification count", error);
+    }
+  };
   const getAllLead1 = async () => {
     try {
-        const response = await axios.get(`${apiUrl}/get_All_Lead_Followup`, {
-            headers: {
-                "Content-Type": "application/json",
-                "mongodb-url": DBuUrl,
-                Authorization: "Bearer " + localStorage.getItem("token"),
-            },
-        });
+      const response = await axios.get(`${apiUrl}/get_All_Lead_Followup`, {
+        headers: {
+          "Content-Type": "application/json",
+          "mongodb-url": DBuUrl,
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
 
-        const leads = response?.data?.lead;
-        const filteredLeads = leads?.filter((lead) => lead?.type !== "excel");
+      const leads = response?.data?.lead;
+      const filteredLeads = leads?.filter((lead) => lead?.type !== "excel");
 
-        // Filter for followup leads
-        const currentTime = new Date();
-        const followupLeadsToCount = filteredLeads?.filter((lead) => {
-            const followupDate = new Date(lead?.followup_date);
-            const fiveMinutesBeforeFollowup = new Date(
-                followupDate.getTime() - 5 * 60 * 1000
-            );
-            return currentTime >= fiveMinutesBeforeFollowup;
-        });
+      // Filter for followup leads
+      const currentTime = new Date();
+      const followupLeadsToCount = filteredLeads?.filter((lead) => {
+        const followupDate = new Date(lead?.followup_date);
+        const fiveMinutesBeforeFollowup = new Date(
+          followupDate.getTime() - 5 * 60 * 1000
+        );
+        return currentTime >= fiveMinutesBeforeFollowup;
+      });
 
-        // Filter for callback status leads
-        const callBackLeads = filteredLeads?.filter((lead) => {
-            return lead?.status_details?.[0]?.status_name === "Call Back";
-        });
+      // Filter for callback status leads
+      const callBackLeads = filteredLeads?.filter((lead) => {
+        return lead?.status_details?.[0]?.status_name === "Call Back";
+      });
 
-        const followupLeadCount = followupLeadsToCount?.length || 0;
-        const callBackCount = callBackLeads?.length || 0;
+      const followupLeadCount = followupLeadsToCount?.length || 0;
+      const callBackCount = callBackLeads?.length || 0;
 
-        setLeadCountDataa([
-            { name: "Followup Leads", Value: followupLeadCount },
-            { name: "Call Back Leads", Value: callBackCount }
-        ]);
-        setFilterLeads(filteredLeads);
-        setFollowupLeadCount(followupLeadCount);
-        setCallBackLeadCount(callBackCount);
+      setLeadCountDataa([
+        { name: "Followup Leads", Value: followupLeadCount },
+        { name: "Call Back Leads", Value: callBackCount },
+      ]);
+      setFilterLeads(filteredLeads);
+      setFollowupLeadCount(followupLeadCount);
+      setCallBackLeadCount(callBackCount);
 
-        console.log("Number of leads to count:", followupLeadCount);
-        console.log("Number of callback leads:", callBackCount);
+      console.log("Number of leads to count:", followupLeadCount);
+      console.log("Number of callback leads:", callBackCount);
     } catch (error) {
-        console.error(error);
+      console.error(error);
     }
-};
+  };
   useEffect(() => {
     getAllLead1();
+    getNotificationCount();
     const intervalId = setInterval(getAllLead1, 30000); // Fetch every 30 seconds
     return () => clearInterval(intervalId);
   }, []);
@@ -169,51 +187,58 @@ function Header() {
         </ul>
 
         <Breadcrumb />
-        <div className="text-center blink-soft">
+        {/* <div className="text-center blink-soft">
           <h2 className="demo_smsm">In Demo SMS Will Not Work</h2>
-        </div>
+        </div> */}
 
         <ul className="navbar-nav ml-auto">
           <li className="nav-item dropdown">
-            <Link className="nav-link" data-toggle="dropdown" to="#">
+            <Link
+              className="nav-link"
+              data-toggle="dropdown"
+              to="/notification"
+            >
               <i className="far fa-bell pe-7s-bell" />
 
-              {followupLeadCount > 0 && (
+              {notificationCount > 0 && (
                 <span className="badge badge-warning navbar-badge">
-                  {followupLeadCount}
+                  {notificationCount}
                 </span>
               )}
             </Link>
-            <div className="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+            {/* <div className="dropdown-menu dropdown-menu-lg dropdown-menu-right">
               {followupLeadCount > 0 && (
                 <Link to="/followupleads" className="dropdown-item">
                   <i className="fas fa-envelope mr-2" /> {followupLeadCount}{" "}
                   Miss follow-ups
                 </Link>
               )}
+            </div> */}
+          </li>
+
+          {/* Call Icon with Notification */}
+          <li className="nav-item dropdown" style={{ display: "none" }}>
+            <Link className="nav-link" data-toggle="dropdown" to="#">
+              <i className="fas fa-phone" />
+              {callBackLeadCount > 0 && (
+                <span className="badge badge-warning navbar-badge">
+                  {callBackLeadCount}
+                </span>
+              )}
+            </Link>
+            <div
+              className="dropdown-menu dropdown-menu-lg dropdown-menu-right"
+              style={{ display: "none" }}
+            >
+              {callBackLeadCount > 0 && (
+                <Link to="/followupleads" className="dropdown-item">
+                  <i className="fas fa-phone mr-2" /> {callBackLeadCount}{" "}
+                  Pending Callbacks
+                </Link>
+              )}
             </div>
           </li>
-          
-    {/* Call Icon with Notification */}
-    <li className="nav-item dropdown">
-        <Link className="nav-link" data-toggle="dropdown" to="#">
-            <i className="fas fa-phone" />
-            {callBackLeadCount > 0 && (
-                <span className="badge badge-warning navbar-badge">
-                    {callBackLeadCount}
-                </span>
-            )}
-        </Link>
-        <div className="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-            {callBackLeadCount > 0 && (
-                <Link to="/followupleads" className="dropdown-item">
-                    <i className="fas fa-phone mr-2" /> {callBackLeadCount}{" "}
-                    Pending Callbacks
-                </Link>
-            )}
-        </div>
-    </li>
-    {/* Rest of the navbar code */}
+          {/* Rest of the navbar code */}
 
           {/* <li className="nav-item dropdown">
             <Link className="nav-link" data-toggle="dropdown" to="#">
@@ -266,7 +291,7 @@ function Header() {
               <Link to="/login" className="dropdown-item" onClick={Logout}>
                 <i className="nav-icon far fa fa-cog" /> logout user
               </Link>
-              {localStorage.getItem("role") === "admin" && (
+              {/* {localStorage.getItem("role") === "admin" && (
                 <>
                   {agent &&
                     agent.agent?.map(
@@ -288,7 +313,7 @@ function Header() {
                         )
                     )}
                 </>
-              )}
+              )} */}
             </div>{" "}
           </li>
           <li className="nav-item">

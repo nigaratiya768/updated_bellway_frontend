@@ -53,7 +53,11 @@ function SideNav() {
         return "allapi";
       }
 
-      if (activeItem === "Incomereport" || activeItem === "Callreport"|| activeItem === "Productreport") {
+      if (
+        activeItem === "Incomereport" ||
+        activeItem === "Callreport" ||
+        activeItem === "Productreport"
+      ) {
         return "Report";
       }
     };
@@ -174,20 +178,22 @@ function SideNav() {
                           display: activeParent === "lead" ? "block" : "none",
                         }}
                       >
-                      {(userRole === "admin" || userRole === "TeamLeader" || userRole === "GroupLeader") && (
-                        <li className="nav-item">
-                          <Link
-                            to="/Addlead"
-                            className={
-                              activeItem === "Addlead"
-                                ? "nav-link active"
-                                : "nav-link"
-                            }
-                          >
-                            <p>Add Lead</p>
-                          </Link>
-                        </li>
-                      )}
+                        {(userRole === "admin" ||
+                          userRole === "TeamLeader" ||
+                          userRole === "GroupLeader") && (
+                          <li className="nav-item">
+                            <Link
+                              to="/Addlead"
+                              className={
+                                activeItem === "Addlead"
+                                  ? "nav-link active"
+                                  : "nav-link"
+                              }
+                            >
+                              <p>Add Lead</p>
+                            </Link>
+                          </li>
+                        )}
                         <li className="nav-item">
                           <Link
                             to="/leads"
@@ -309,7 +315,7 @@ function SideNav() {
                     </li>
 
                     {/* manage sms start */}
-                    {(userRole === "admin" || userRole === "TeamLeader") && (
+                    {/* {(userRole === "admin" || userRole === "TeamLeader") && (
                       <li className="nav-item">
                         <Link
                           to="#"
@@ -351,9 +357,9 @@ function SideNav() {
                             >
                               <p> SMS Report</p>
                             </Link>
-                          </li>
+                          </li> */}
 
-                          {/* <li className="nav-item">
+                    {/* <li className="nav-item">
                           <Link
                             to="/buysms"
                             className={
@@ -365,14 +371,14 @@ function SideNav() {
                             <p> SMS Pack</p>
                           </Link>
                         </li> */}
-                        </ul>
+                    {/* </ul>
                       </li>
-                    )}
+                    )} */}
 
                     {/* manage sms end */}
 
                     {/* manage Wtsp start */}
-                    {(userRole === "admin" || userRole === "TeamLeader") && (
+                    {/* {(userRole === "admin" || userRole === "TeamLeader") && (
                       <li className="nav-item">
                         <Link
                           to="#"
@@ -415,45 +421,30 @@ function SideNav() {
                               <p> What's App Report</p>
                             </Link>
                           </li>
-
-                          {/* <li className="nav-item">
-                          <Link
-                            to="/BuysmsWtsp"
-                            className={
-                              activeItem === "BuysmsWtsp"
-                                ? "nav-link active"
-                                : "nav-link"
-                            }
-                          >
-                            <p> What's App Pack</p>
-                          </Link>
-                        </li> */}
-
-                          {/* <li className="nav-item">
-                          <Link
-                            to="/BusinessWA"
-                            className={
-                              activeItem === "BusinessWA"
-                                ? "nav-link active"
-                                : "nav-link"
-                            }
-                          >
-                            <p>Business WA</p>
-                          </Link>
-                        </li> */}
-
-                          {/* <li className="nav-item">
-                  <a   href="" className={activeItem === 'buysms' ? 'nav-link active' : 'nav-link'}
-                  onClick={() => handleItemClick('buysms')}>
-                      <p> Setting</p>
-                    </a>
-                  </li> */}
                         </ul>
+                      </li>
+                    )} */}
+                    {(userRole === "admin" ||
+                      userRole === "TeamLeader" ||
+                      userRole === "GroupLeader") && (
+                      <li className="nav-item">
+                        <Link
+                          // style={{ display: "flex" }}
+                          to="/attendence"
+                          className={
+                            activeItem === "attendence"
+                              ? "nav-link active"
+                              : "nav-link"
+                          }
+                        >
+                          <i className="nav-icon fas fa fa-user-md" />
+                          Attendence
+                        </Link>
                       </li>
                     )}
                     {/* manage Wtsp end */}
                     {(userRole === "admin" || userRole === "TeamLeader") && (
-                      <li className="nav-item">
+                      <li className="nav-item" style={{ display: "none" }}>
                         <Link
                           to="/UploadContent"
                           className={
@@ -551,7 +542,7 @@ function SideNav() {
                             <p>Manage Report</p>
                           </Link>
                         </li>
-                        <li className="nav-item">
+                        <li className="nav-item" style={{ display: "none" }}>
                           <Link
                             to="/Callreport"
                             className={
@@ -566,20 +557,20 @@ function SideNav() {
                       </ul>
                     </li>
                     {/* for report */}
-                    {(userRole === "admin" ) && (
-                    <li className="nav-item">
-                      <Link
-                        to="/Setting"
-                        className={
-                          activeItem === "Setting"
-                            ? "nav-link active"
-                            : "nav-link"
-                        }
-                      >
-                        <i className="nav-icon far fa fa-cog" />
-                        Setting
-                      </Link>
-                    </li>
+                    {userRole === "admin" && (
+                      <li className="nav-item">
+                        <Link
+                          to="/Setting"
+                          className={
+                            activeItem === "Setting"
+                              ? "nav-link active"
+                              : "nav-link"
+                          }
+                        >
+                          <i className="nav-icon far fa fa-cog" />
+                          Setting
+                        </Link>
+                      </li>
                     )}
                   </>
                 </ul>

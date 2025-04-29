@@ -22,7 +22,7 @@ const disposition = [
   "Not Reachable",
   "Call Disconnected",
   "Busy",
-  "Won"
+  "Won",
 ];
 
 export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
@@ -35,17 +35,18 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
   const [selectedRowIds1, setSelectedRowIds1] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
+  const [isCallingStart, setIsCallingStart] = useState(false);
   const { agent } = useSelector((state) => state.agent);
   const { Statusdata } = useSelector((state) => state.StatusData);
   const apiUrl = process.env.REACT_APP_API_URL;
   const DBuUrl = process.env.REACT_APP_DB_URL;
-  const [selectedRow, setSelectedRow] = useState(null); 
-  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentCallingLead, setCurrentCallingLead] = useState(undefined);
   const [dataa, setData] = useState({
     followup_date: new Date(), // Initialize with the current date
   });
- 
+
   const getdatetimeformate = (datetime) => {
     if (datetime) {
       const dateObject = new Date(datetime);
@@ -63,146 +64,214 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
     return num < 10 ? `0${num}` : num;
   }
   const handleQuickEdit = (row) => {
+    console.log("currentcallinlead", currentCallingLead, row);
+    if (!currentCallingLead) {
+      toast.warn("please call first");
+      return;
+    }
+    if (currentCallingLead._id != row._id) {
+      toast.warn("edit is allowed in which you have called");
+      return;
+    }
     setSelectedRow(row); // Set the row data
     setIsModalOpen(true); // Open the modal
   };
-  
+
   // Function to handle modal close
   const handleCloseModal = () => {
     setIsModalOpen(false); // Close the modal
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    if (!currentCallingLead) {
+      toast.warn("please call first");
+      return;
+    }
+
     const followupDate = selectedRow?.followup_date;
-    
+
     if (!followupDate) {
-        toast.warn("Followup date is required");
-        return;
+      toast.warn("Followup date is required");
+      return;
     }
 
     // Custom format function to preserve exact date and time
     const formatDate = (date) => {
-        const d = new Date(date);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const hours = String(d.getHours()).padStart(2, '0');
-        const minutes = String(d.getMinutes()).padStart(2, '0');
-        
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const hours = String(d.getHours()).padStart(2, "0");
+      const minutes = String(d.getMinutes()).padStart(2, "0");
+
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
     };
 
     const updatedLeadData = {
-        lead_id: selectedRow._id,
-        commented_by: selectedRow?.agent_details[0]?._id || '',
-        followup_status_id: selectedRow.status_details[0]?._id || '',
-        followup_date: formatDate(followupDate), // Use the custom format function
-        followup_won_amount: selectedRow.followup_won_amount || 0,
-        followup_lost_reason_id: selectedRow.followup_lost_reason_id || '',
-        add_to_calender: selectedRow.add_to_calender || false,
-        followup_desc: selectedRow.description || '',
+      lead_id: selectedRow._id,
+      commented_by: selectedRow?.agent_details[0]?._id || "",
+      followup_status_id: selectedRow.status_details[0]?._id || "",
+      followup_date: formatDate(followupDate), // Use the custom format function
+      followup_won_amount: selectedRow.followup_won_amount || 0,
+      followup_lost_reason_id: selectedRow.followup_lost_reason_id || "",
+      add_to_calender: selectedRow.add_to_calender || false,
+      followup_desc: selectedRow.description || "",
     };
 
     console.log("Submitting data:", updatedLeadData);
 
     try {
-        const response = await dispatch(addfollowup(updatedLeadData));
-        if (response.payload.success) {
-            toast.success(response.payload?.message);
-            window.location.reload();
-        } else {
-            toast.warn(response.payload?.message);
-            window.location.reload();
-        }
-    } catch (error) {
-        console.error("Error submitting followup:", error);
-        toast.error("An error occurred while submitting followup");
-    }
-};
-  
+      const fatch = await axios.put(`${apiUrl}/update_call_log`, {
+        user_id: localStorage.getItem("user_id"),
+        lead_id: selectedRow._id,
+      });
+      const response = await dispatch(addfollowup(updatedLeadData));
+      if (response.payload.success) {
+        toast.success(response.payload?.message);
+        //window.location.reload();
 
- 
-  
+        if (localStorage.getItem("role") === "admin") {
+          getAllLead1();
+        } else {
+          getAllLead2(localStorage.getItem("user_id"));
+        }
+        handleCloseModal();
+        setCurrentCallingLead(undefined);
+      } else {
+        toast.warn(response.payload?.message);
+        //window.location.reload();
+        if (localStorage.getItem("role") === "admin") {
+          getAllLead1();
+        } else {
+          getAllLead2(localStorage.getItem("user_id"));
+        }
+        handleCloseModal();
+        setCurrentCallingLead(undefined);
+      }
+    } catch (error) {
+      console.error("Error submitting followup:", error);
+      toast.error("An error occurred while submitting followup");
+    }
+  };
+
   const parseDate = (dateString) => {
     const date = new Date(dateString);
     return isNaN(date.getTime()) ? null : date;
   };
-  
 
   const quickEditModal = (
     <div
-      className={`modal fade ${isModalOpen ? 'show' : ''}`}
-      style={{ display: isModalOpen ? 'block' : 'none' }}
+      className={`modal fade ${isModalOpen ? "show" : ""}`}
+      style={{ display: isModalOpen ? "block" : "none" }}
       aria-labelledby="quickEditModalLabel"
       aria-hidden={!isModalOpen}
     >
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title" id="quickEditModalLabel">Quick Edit</h5>
-            <button type="button" className="btn-close" onClick={handleCloseModal}></button>
+            <h5 className="modal-title" id="quickEditModalLabel">
+              Quick Edit
+            </h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={handleCloseModal}
+            ></button>
           </div>
           <div className="modal-body">
-            <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label htmlFor="lastComment" className="form-label">Last Comment</label>
-                <textarea
-                  id="lastComment"
-                  className="form-control"
-                  value={selectedRow?.description || ""}
-                  onChange={(e) => setSelectedRow({ ...selectedRow, description: e.target.value })}
-                />
-              </div>
-             
-              <div className="mb-3">
-                <label htmlFor="followupDateTime" className="form-label">Follow-up Date and Time</label>
-                {/* <input
+            {/* <form onSubmit={handleSubmit}> */}
+            <div className="mb-3">
+              <label htmlFor="lastComment" className="form-label">
+                Last Comment
+              </label>
+              <textarea
+                id="lastComment"
+                className="form-control"
+                value={selectedRow?.description || ""}
+                onChange={(e) =>
+                  setSelectedRow({
+                    ...selectedRow,
+                    description: e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            <div className="mb-3">
+              <label htmlFor="followupDateTime" className="form-label">
+                Follow-up Date and Time
+              </label>
+              {/* <input
                   type="datetime-local"
                   id="followupDateTime"
                   className="form-control"
                   value={selectedRow?.followup_date ? formatDateToLocal(selectedRow.followup_date) : ""}
                   onChange={(e) => setSelectedRow({ ...selectedRow, followup_date: e.target.value })}
                 /> */}
-                 <DatePicker
-                      // selected={dataa.followup_date}
-                      // onChange={(date) => setData({ ...selectedRow, followup_date: date })}
-                      selected={selectedRow?.followup_date ? new Date(selectedRow.followup_date) : null}
-                      onChange={(date) => setSelectedRow({ ...selectedRow, followup_date: date })}
-                      showTimeSelect
-                      timeFormat="hh:mm aa"
-                      timeIntervals={5}
-                      timeCaption="Time"
-                      dateFormat="dd/MM/yyyy h:mm aa" // Custom format: day/month/year and 12-hour time
-                      className="form-control"
-                      placeholderText="Followup date"
-                      name="followup_date"
-                      id="followup_date"
-                    />
-              </div>
-  
-              <div className="mb-3">
-                <label htmlFor="status" className="form-label">Change Status</label>
-                <select
-                  id="status"
-                  className="form-control"
-                  value={selectedRow?.status_details[0]?._id || ""}
-                  onChange={(e) => setSelectedRow({ ...selectedRow, status_details: [{ _id: e.target.value }] })}
-                >
-                  <option value="">Select Status</option>
-                  {Statusdata.leadstatus?.map((status) => (
-                    <option key={status._id} value={status._id}>
-                      {status.status_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-  
-              <div className="modal-footer">
-                <button type="submit" className="btn btn-primary">Submit</button>
-                <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>Close</button>
-              </div>
-            </form>
+              <DatePicker
+                // selected={dataa.followup_date}
+                // onChange={(date) => setData({ ...selectedRow, followup_date: date })}
+                selected={
+                  selectedRow?.followup_date
+                    ? new Date(selectedRow.followup_date)
+                    : null
+                }
+                onChange={(date) =>
+                  setSelectedRow({ ...selectedRow, followup_date: date })
+                }
+                showTimeSelect
+                timeFormat="hh:mm aa"
+                timeIntervals={5}
+                timeCaption="Time"
+                dateFormat="dd/MM/yyyy h:mm aa" // Custom format: day/month/year and 12-hour time
+                className="form-control"
+                placeholderText="Followup date"
+                name="followup_date"
+                id="followup_date"
+              />
+            </div>
+
+            <div className="mb-3">
+              <label htmlFor="status" className="form-label">
+                Change Status
+              </label>
+              <select
+                id="status"
+                className="form-control"
+                value={selectedRow?.status_details[0]?._id || ""}
+                onChange={(e) =>
+                  setSelectedRow({
+                    ...selectedRow,
+                    status_details: [{ _id: e.target.value }],
+                  })
+                }
+              >
+                <option value="">Select Status</option>
+                {Statusdata.leadstatus?.map((status) => (
+                  <option key={status._id} value={status._id}>
+                    {status.status_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                onClick={handleSubmit}
+                type="button"
+                className="btn btn-primary"
+              >
+                Submit
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleCloseModal}
+              >
+                Close
+              </button>
+            </div>
+            {/* </form> */}
           </div>
         </div>
       </div>
@@ -225,7 +294,9 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
         },
       });
       const leads = responce?.data?.lead || [];
-
+      if (isCallingStart && leads.length > 0) {
+        handleCalling(leads[0]);
+      }
       // Filter out leads where type is 'excel'
       const filteredLeads = leads.filter((lead) => lead.type !== "excel");
 
@@ -260,14 +331,22 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
         }
       );
       if (responce?.data?.success === true) {
+        const leadArray = responce?.data?.lead || [];
+        if (isCallingStart && leadArray.length > 0) {
+          handleCalling(responce?.data?.lead[0]);
+        }
         setstatus(responce?.data?.success);
-        setleads(responce?.data?.lead);
-        setfilterleads(responce?.data?.lead);
+        setleads(leadArray);
+        setfilterleads(leadArray);
       }
       if (responce?.data?.success === false) {
+        const leadArray = responce?.data?.lead || [];
+        if (isCallingStart && leadArray.length > 0) {
+          handleCalling(responce?.data?.lead[0]);
+        }
         setstatus(responce?.data?.success);
-        setleads(responce?.data?.lead);
-        setfilterleads(responce?.data?.lead);
+        setleads(leadArray);
+        setfilterleads(leadArray);
       }
     } catch (error) {
       const message = await error?.response?.data?.message;
@@ -419,8 +498,49 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
       selector: (row) => row?.lead_source_details[0]?.lead_source_name,
       sortable: true,
     },
+    {
+      name: "Calling",
+      cell: (row) => (
+        <i
+          onClick={() => handleCalling(row)}
+          class="fas fa-phone "
+          style={{ fontSize: 25, color: "yellowgreen" }}
+        ></i>
+      ),
+    },
   ];
 
+  const handleCalling = async (data) => {
+    try {
+      console.log("call data", data);
+      const response = await axios.post(`${apiUrl}/add_new_call_log`, {
+        user_id: localStorage.getItem("user_id"),
+        lead_id: data._id,
+      });
+      setIsCallingStart(true);
+      setCurrentCallingLead(data);
+      const phoneNumber = data.contact_no;
+      console.log("callling", data);
+      if (
+        /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        )
+      ) {
+        window.open(`tel:${phoneNumber}`); // Trigger the call manually
+      } else {
+        window.location.href = `tel:${phoneNumber}`; // Trigger the call manually
+      }
+    } catch (error) {
+      console.log("error in handleCalling", error);
+    }
+  };
+  // useEffect(() => {
+  //   if (isCallingStart && leads.length > 0) {
+  //     const leadData = leads[0];
+  //     // handleCalling(leadData);
+  //   }
+  //   console.log("try to call", isCallingStart, "abc", leads);
+  // }, [leads]);
   const updateDisposition = async (row, e) => {
     e.preventDefault();
     // console.log("disposition", row, e.target.value);
@@ -506,22 +626,24 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
     // },
     {
       name: "Quick Edit",
-      cell: (row) => <button onClick={() => handleQuickEdit(row)}>Quick Edit</button>,
+      cell: (row) => (
+        <button onClick={() => handleQuickEdit(row)}>Quick Edit</button>
+      ),
     },
 
-     
     {
       // name: "Followup date",
       name: <div style={{ display: "none" }}>Followup date</div>,
       selector: (row) =>
-        row?.followup_date
-          ? (<div style={{display:"none"}} >{getdatetimeformate(row?.followup_date)}</div>) 
-          
+        row?.followup_date ? (
+          <div style={{ display: "none" }}>
+            {getdatetimeformate(row?.followup_date)}
+          </div>
+        ) : (
           //  row?.followup_date && format(new Date(datafomate(row?.followup_date)), 'dd/MM/yy hh:mm:ss')
-            
-          : (
-            ""
-          ),
+
+          ""
+        ),
       sortable: true,
     },
 
@@ -589,28 +711,30 @@ export const AllNewLead = ({ sendDataToParent, dataFromParent }) => {
     //           </option>
     //         ))}
     //       </select>
-        
+
     //     </div>
     //   ),
     // },
-    
 
     {
       name: "Quick Edit",
-      cell: (row) => <button onClick={() => handleQuickEdit(row)}>Quick Edit</button>,
+      cell: (row) => (
+        <button onClick={() => handleQuickEdit(row)}>Quick Edit</button>
+      ),
     },
     {
       // name: "Followup date",
       name: <div style={{ display: "none" }}>Followup date</div>,
       selector: (row) =>
-        row?.followup_date
-          ? (<div style={{display:"none"}} >{getdatetimeformate(row?.followup_date)}</div>) 
-          
+        row?.followup_date ? (
+          <div style={{ display: "none" }}>
+            {getdatetimeformate(row?.followup_date)}
+          </div>
+        ) : (
           //  row?.followup_date && format(new Date(datafomate(row?.followup_date)), 'dd/MM/yy hh:mm:ss')
-            
-          : (
-            ""
-          ),
+
+          ""
+        ),
       sortable: true,
     },
     {

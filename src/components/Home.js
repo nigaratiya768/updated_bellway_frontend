@@ -7,6 +7,7 @@ import LineChart1 from "./LineChart1";
 import { getAllAgent, getAllAgentWithData } from "../features/agentSlice";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import ApexCharts from "apexcharts";
 import Chart from "react-apexcharts";
 import { getAllLeadSource } from "../features/leadSource";
 import axios from "axios";
@@ -14,8 +15,8 @@ import MyCalendar from "../components/Pages/MonthlyCalendar";
 import Notification from "./Notification";
 import CallBarchart from "./Pages/CallBarchart";
 // import toast from "react-hot-toast";
-import { ToastContainer,toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 function Home() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const DBuUrl = process.env.REACT_APP_DB_URL;
@@ -28,7 +29,7 @@ function Home() {
   const [filterAgentss, setFilteredAgents] = useState([]);
   const [selectedGroupLeader, setSelectedGroupLeader] = useState("");
   const dispatch = useDispatch();
-  console.log("agentssssssssstlllll",agentss)
+  console.log("agentssssssssstlllll", agentss);
   const [agentDetails, setAgentDetails] = useState([]);
   const userRole = localStorage.getItem("role");
   const [leadcountdataa, setLeadCountDataa] = useState([]);
@@ -37,33 +38,56 @@ function Home() {
   const [followupLeadCount, setFollowupLeadCount] = useState(0);
   const [notifiedMeetings, setNotifiedMeetings] = useState(new Set());
   const [notifiedCalls, setNotifiedCalls] = useState(new Set());
+  const [dashboardLeadStats, setDashboardLeadStats] = useState([]);
+  const [callLogs, setCallLogs] = useState([]);
 
- 
+  const getCallLogs = async () => {
+    try {
+      const response = await axios.get(`${apiUrl}/call_report`);
+      console.log("response", response.data);
+      setCallLogs(response.data.callLogs);
+    } catch (error) {
+      console.log("error in getCallLogs");
+    }
+  };
+  useEffect(() => {
+    getCallLogs();
+  }, []);
+  const test_data = {
+    series: [44, 55, 13, 43, 22],
+    options: {
+      labels: ["Team A", "Team B", "Team C", "Team D", "Team E"],
+    },
+  };
+  const getDashboardStats = async () => {
+    try {
+      const response = await axios.get(`${apiUrl}/dashboardLeadStats/`);
+      console.log("response", response);
+      setDashboardLeadStats(response.data);
+    } catch (error) {
+      console.log("error in getDashboardStats", error);
+    }
+  };
+
   const converTtime = (ffgfgf) => {
     const second = ffgfgf;
     const hours = Math.floor(second / 3600);
     const minutes = Math.floor((second % 3600) / 60);
     const remainingSeconds = second % 60;
     const timeconverted =
-      hours +
-      "h " +
-      minutes +
-      "m " +
-      remainingSeconds +
-      "s";
+      hours + "h " + minutes + "m " + remainingSeconds + "s";
     return timeconverted;
   };
-
 
   useEffect(() => {
     const fetchAgents = async () => {
       try {
         // const response = await axios.get(agentsApiUrl);
-        const response = await axios.get( `${apiUrl}/get_all_agent/`);
-        console.log('API response:', response.data);
+        const response = await axios.get(`${apiUrl}/get_all_agent/`);
+        console.log("API response:", response.data);
         if (response.data.success) {
           const agentsData = response.data.agent || []; // Corrected key
-          console.log('Agents data:', agentsData);
+          console.log("Agents data:", agentsData);
           setAgents(agentsData);
         } else {
           toast.warn(response.data.message);
@@ -72,7 +96,7 @@ function Home() {
         toast.warn("Error fetching agents");
       }
     };
-
+    getDashboardStats();
     fetchAgents();
   }, []);
 
@@ -85,7 +109,7 @@ function Home() {
   useEffect(() => {
     setFilteredAgents(filterAgents(agentss));
   }, [agentss, userRole]);
-  
+
   // const handleGroupLeaderChange = (e) => {
   //   const selectedId = e.target.value;
   //   setSelectedGroupLeader(selectedId);
@@ -100,13 +124,11 @@ function Home() {
     setSelectedGroupLeader(selectedId);
 
     if (selectedId) {
-      
       if (userRole === "admin") {
         GetUserCallAccordingToGroupLeader1(selectedId); // Call for Admin
       } else if (userRole === "GroupLeader") {
         handleTeamLeaderChange(selectedId); // Call for Group Leader
-      }
-      else if (userRole === "TeamLeader") {
+      } else if (userRole === "TeamLeader") {
         handleTeam1LeaderChange(selectedId); // Call for Group Leader
       }
     }
@@ -116,28 +138,28 @@ function Home() {
   const handleTeamLeaderChange = (selectedId) => {
     setSelectedGroupLeader(selectedId);
     if (selectedId) {
-      GetUserCallAccordingToGroupLeader1(selectedId); 
+      GetUserCallAccordingToGroupLeader1(selectedId);
     }
   };
   const handleTeam1LeaderChange = (selectedId) => {
     setSelectedGroupLeader(selectedId);
     if (selectedId) {
-      getHigstNoOfCall1(); 
+      getHigstNoOfCall1();
     }
   };
 
   // Filter agents based on the user's role
   const filteredAgents = agentss.filter((agent) => {
     const loggedInUserId = localStorage.getItem("user_id"); // Assuming the logged-in user ID is stored in localStorage
-  
+
     if (userRole === "admin") {
-      return agent.role === "GroupLeader"; 
+      return agent.role === "GroupLeader";
     } else if (userRole === "TeamLeader") {
       return agent.role === "user" && agent.assigntl === loggedInUserId;
     } else if (userRole === "GroupLeader") {
       return agent.role === "TeamLeader" && agent.assigntl === loggedInUserId;
     }
-    return false; 
+    return false;
   });
   useEffect(() => {
     const fetchData1 = async () => {
@@ -267,13 +289,16 @@ function Home() {
   };
   const GetAllUserCallLogByAdminId = async () => {
     try {
-      const responce = await axios.get(`${apiUrl}/GetAllUserCallLogByAdminId/`, {
-        headers: {
-          "Content-Type": "application/json",
-          "mongodb-url": DBuUrl,
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
+      const responce = await axios.get(
+        `${apiUrl}/GetAllUserCallLogByAdminId/`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "mongodb-url": DBuUrl,
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
+      );
       setDetail(responce?.data?.array);
     } catch (error) {
       console.log(error);
@@ -344,7 +369,7 @@ function Home() {
         }
       );
       // setAgentDetails(responce?.data?.array || []);
-      setDetail(responce?.data?.array );
+      setDetail(responce?.data?.array);
     } catch (error) {
       console.log(error);
       setDetail(error.responce?.data?.array);
@@ -380,8 +405,7 @@ function Home() {
         headers: {
           "Content-Type": "application/json",
           "mongodb-url": DBuUrl,
-            Authorization: "Bearer " + localStorage.getItem("token"),
-
+          Authorization: "Bearer " + localStorage.getItem("token"),
         },
       });
       setSale(responce?.data?.details);
@@ -402,7 +426,6 @@ function Home() {
             "Content-Type": "application/json",
             "mongodb-url": DBuUrl,
             Authorization: "Bearer " + localStorage.getItem("token"),
-
           },
         }
       );
@@ -423,7 +446,6 @@ function Home() {
             "Content-Type": "application/json",
             "mongodb-url": DBuUrl,
             Authorization: "Bearer " + localStorage.getItem("token"),
-
           },
         }
       );
@@ -445,7 +467,6 @@ function Home() {
             "Content-Type": "application/json",
             "mongodb-url": DBuUrl,
             Authorization: "Bearer " + localStorage.getItem("token"),
-
           },
         }
       );
@@ -482,7 +503,6 @@ function Home() {
             "Content-Type": "application/json",
             "mongodb-url": DBuUrl,
             Authorization: "Bearer " + localStorage.getItem("token"),
-
           },
         }
       );
@@ -504,7 +524,6 @@ function Home() {
             "Content-Type": "application/json",
             "mongodb-url": DBuUrl,
             Authorization: "Bearer " + localStorage.getItem("token"),
-
           },
         }
       );
@@ -526,7 +545,6 @@ function Home() {
             "Content-Type": "application/json",
             "mongodb-url": DBuUrl,
             Authorization: "Bearer " + localStorage.getItem("token"),
-
           },
         }
       );
@@ -571,7 +589,6 @@ function Home() {
             "Content-Type": "application/json",
             "mongodb-url": DBuUrl,
             Authorization: "Bearer " + localStorage.getItem("token"),
-
           },
         }
       );
@@ -624,7 +641,7 @@ function Home() {
     }
   };
 
-  // for meeting notification 
+  // for meeting notification
   const getAllLead11 = async () => {
     try {
       const response = await axios.get(`${apiUrl}/get_All_Lead_Followup`, {
@@ -634,18 +651,20 @@ function Home() {
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
       });
-  
+
       const leads = response?.data?.lead;
       const filteredLeads = leads?.filter((lead) => lead?.type !== "excel");
-  
+
       const currentTime = new Date();
-  
+
       filteredLeads?.forEach((lead) => {
         const isMeeting = lead?.status_details?.[0]?.status_name === "Meeting";
-  
+
         if (isMeeting) {
           const followupDate = new Date(lead?.followup_date);
-          const oneHourBefore = new Date(followupDate.getTime() - 60 * 60 * 1000);
+          const oneHourBefore = new Date(
+            followupDate.getTime() - 60 * 60 * 1000
+          );
           if (currentTime >= oneHourBefore && currentTime <= followupDate) {
             if (!notifiedMeetings.has(lead._id)) {
               const minutesRemaining = Math.floor(
@@ -667,13 +686,13 @@ function Home() {
                   transition: toast.Slide,
                 }
               );
-  
+
               setNotifiedMeetings((prev) => new Set([...prev, lead._id]));
             }
           }
         }
       });
-  
+
       // Original lead counting logic
       const leadsToCount = filteredLeads?.filter((lead) => {
         const followupDate = new Date(lead?.followup_date);
@@ -682,13 +701,13 @@ function Home() {
         );
         return currentTime >= fiveMinutesBeforeFollowup;
       });
-  
+
       const followupLeadCount = leadsToCount?.length || 0;
-  
+
       setLeadCountDataa([{ name: "Followup Leads", Value: followupLeadCount }]);
       setFilterLeads(filteredLeads);
       setFollowupLeadCount(followupLeadCount);
-  
+
       console.log(" home Number of leads to count:", followupLeadCount);
     } catch (error) {
       console.error(error);
@@ -700,82 +719,85 @@ function Home() {
     return () => clearInterval(intervalId);
   }, []);
 
-// for call notification 
+  // for call notification
 
-const getAllLead111 = async () => {
-  try {
-    const response = await axios.get(`${apiUrl}/get_All_Lead_Followup`, {
-      headers: {
-        "Content-Type": "application/json",
-        "mongodb-url": DBuUrl,
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-    });
+  const getAllLead111 = async () => {
+    try {
+      const response = await axios.get(`${apiUrl}/get_All_Lead_Followup`, {
+        headers: {
+          "Content-Type": "application/json",
+          "mongodb-url": DBuUrl,
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
 
-    const leads = response?.data?.lead;
-    const filteredLeads = leads?.filter((lead) => lead?.type !== "excel");
+      const leads = response?.data?.lead;
+      const filteredLeads = leads?.filter((lead) => lead?.type !== "excel");
 
-    const currentTime = new Date();
+      const currentTime = new Date();
 
-    filteredLeads?.forEach((lead) => {
-      const isMeeting = lead?.status_details?.[0]?.status_name === "Call Back";
+      filteredLeads?.forEach((lead) => {
+        const isMeeting =
+          lead?.status_details?.[0]?.status_name === "Call Back";
 
-      if (isMeeting) {
-        const followupDate = new Date(lead?.followup_date);
-        const oneHourBefore = new Date(followupDate.getTime() - 60 * 60 * 1000);
-        if (currentTime >= oneHourBefore && currentTime <= followupDate) {
-          if (!notifiedMeetings.has(lead._id)) {
-            const minutesRemaining = Math.floor(
-              (followupDate - currentTime) / (1000 * 60)
-            );
-            toast.success(
-              <div>
-                <h4 className="font-bold">Upcoming Call Alert!</h4>
-                <p>Call with: {lead.full_name}</p>
-                <p>Time remaining: {minutesRemaining} minutes</p>
-              </div>,
-              {
-                position: "bottom-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                transition: toast.Slide,
-              }
-            );
+        if (isMeeting) {
+          const followupDate = new Date(lead?.followup_date);
+          const oneHourBefore = new Date(
+            followupDate.getTime() - 60 * 60 * 1000
+          );
+          if (currentTime >= oneHourBefore && currentTime <= followupDate) {
+            if (!notifiedMeetings.has(lead._id)) {
+              const minutesRemaining = Math.floor(
+                (followupDate - currentTime) / (1000 * 60)
+              );
+              toast.success(
+                <div>
+                  <h4 className="font-bold">Upcoming Call Alert!</h4>
+                  <p>Call with: {lead.full_name}</p>
+                  <p>Time remaining: {minutesRemaining} minutes</p>
+                </div>,
+                {
+                  position: "bottom-right",
+                  autoClose: 5000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  transition: toast.Slide,
+                }
+              );
 
-            setNotifiedMeetings((prev) => new Set([...prev, lead._id]));
+              setNotifiedMeetings((prev) => new Set([...prev, lead._id]));
+            }
           }
         }
-      }
-    });
+      });
 
-    // Original lead counting logic
-    const leadsToCount = filteredLeads?.filter((lead) => {
-      const followupDate = new Date(lead?.followup_date);
-      const fiveMinutesBeforeFollowup = new Date(
-        followupDate.getTime() - 5 * 60 * 1000
-      );
-      return currentTime >= fiveMinutesBeforeFollowup;
-    });
+      // Original lead counting logic
+      const leadsToCount = filteredLeads?.filter((lead) => {
+        const followupDate = new Date(lead?.followup_date);
+        const fiveMinutesBeforeFollowup = new Date(
+          followupDate.getTime() - 5 * 60 * 1000
+        );
+        return currentTime >= fiveMinutesBeforeFollowup;
+      });
 
-    const followupLeadCount = leadsToCount?.length || 0;
+      const followupLeadCount = leadsToCount?.length || 0;
 
-    setLeadCountDataa([{ name: "Followup Leads", Value: followupLeadCount }]);
-    setFilterLeads(filteredLeads);
-    setFollowupLeadCount(followupLeadCount);
+      setLeadCountDataa([{ name: "Followup Leads", Value: followupLeadCount }]);
+      setFilterLeads(filteredLeads);
+      setFollowupLeadCount(followupLeadCount);
 
-    console.log(" home Number of leads to count:", followupLeadCount);
-  } catch (error) {
-    console.error(error);
-  }
-};
-useEffect(() => {
-  getAllLead111();
-  const intervalId = setInterval(getAllLead111, 30000); // Fetch every 30 seconds
-  return () => clearInterval(intervalId);
-}, []);
+      console.log(" home Number of leads to count:", followupLeadCount);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    getAllLead111();
+    const intervalId = setInterval(getAllLead111, 30000); // Fetch every 30 seconds
+    return () => clearInterval(intervalId);
+  }, []);
 
   // const getAllUnassignLead=async()=>{
   //   try {
@@ -796,7 +818,7 @@ useEffect(() => {
   const colors = randomcolor({ count: leadsourcedata1.length });
   const options = {
     labels: leadsource,
-    colors: colors,
+    //colors: colors,
   };
   return (
     <div>
@@ -919,56 +941,66 @@ useEffect(() => {
                       </div>
                     )
                   ) : (
-                    <div
-                      className="col-xs-6 col-sm-6 col-md-6 pl-0 dashboard-fixeds col-lg-4"
-                      key={index}
-                    >
-                      <Link to={`/ImpSchedule/${leadcountdata1?.id}`}>
-                        {" "}
-                        <div
-                          className={`button-30 border-lefts${index + 1} mb-4`}
-                          role="button"
-                        >
-                          <div className="text-center pt-3">
-                            <div className="flex items-center justify-center mx-auto text-red-500 1 bg-custom-100 rounded-full size-14 dark:bg-red-500/20">
-                              {index == 3 ? (
-                                <i
-                                  className={`fa fa-solid fa-lightbulb-o text-custom-500 2`}
-                                ></i>
-                              ) : index == 4 ? (
-                                <i
-                                  className={`fa fa-solid fa-calendar-check-o  text-purple-500 3`}
-                                ></i>
-                              ) : index == 5 ? (
-                                <i
-                                  className={`fa fa-solid fa-clock-o text-red-500 4`}
-                                ></i>
-                              ) : (
-                                <i
-                                  className={`fa fa-solid fa-handshake-o text-custom-500 5`}
-                                ></i>
-                              )}
-                            </div>
-                            <h6 className="mt-2 mb-2">
-                              <span className="counter-value">
-                                {leadcountdata1?.name}
-                              </span>
-                            </h6>
-                            <p className="text-slate-500 dark:text-zink-200">
-                              {leadcountdata1?.Value} - {leadcountdata1?.Value1}
-                            </p>
-                          </div>
-                        </div>
-                      </Link>
-                    </div>
+                    <></>
                   )
                 )
               ) : (
                 <p>Loading or No Data</p>
               )}
+              {dashboardLeadStats.map((v, index) => {
+                console.log("v", v);
+                if (v._id == null) {
+                  return <></>;
+                }
+                return (
+                  <div
+                    className="col-xs-6 col-sm-6 col-md-6 pl-0 dashboard-fixeds col-lg-4"
+                    key={index}
+                  >
+                    <Link>
+                      {" "}
+                      <div
+                        className={`button-30 border-lefts${index + 1} mb-4`}
+                        role="button"
+                      >
+                        <div className="text-center pt-3">
+                          <div className="flex items-center justify-center mx-auto text-red-500 1 bg-custom-100 rounded-full size-14 dark:bg-red-500/20">
+                            {index == 0 ? (
+                              <i
+                                className={`fa fa-solid fa-lightbulb-o text-custom-500 2`}
+                              ></i>
+                            ) : index == 1 ? (
+                              <i
+                                className={`fa fa-solid fa-calendar-check-o  text-purple-500 3`}
+                              ></i>
+                            ) : index == 2 ? (
+                              <i
+                                className={`fa fa-solid fa-clock-o text-red-500 4`}
+                              ></i>
+                            ) : (
+                              <i
+                                className={`fa fa-solid fa-handshake-o text-custom-500 5`}
+                              ></i>
+                            )}
+                          </div>
+                          <h6 className="mt-2 mb-2">
+                            <span className="counter-value">{v._id}</span>
+                          </h6>
+                          <p className="text-slate-500 dark:text-zink-200">
+                            {v.count}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                );
+              })}
             </div>
             <div className="row">
-              <div className="col-xs-6 col-sm-6 col-md-6 col-lg-4 pl-0">
+              <div
+                className="col-xs-6 col-sm-6 col-md-6 col-lg-4 pl-0"
+                style={{ display: "none" }}
+              >
                 <div className="panel panel-bd cardbox2">
                   <div className="panel-body bd-panel">
                     <div className="statistic-box">
@@ -1001,7 +1033,10 @@ useEffect(() => {
                   </div>
                 </div>
               </div>
-              <div className="col-xs-6 col-sm-6 col-md-6 col-lg-4">
+              <div
+                className="col-xs-6 col-sm-6 col-md-6 col-lg-4"
+                style={{ display: "none" }}
+              >
                 <div className="panel panel-bd cardbox2">
                   <div className="panel-body bd-panel">
                     <div className="statistic-box">
@@ -1034,7 +1069,10 @@ useEffect(() => {
                   </div>
                 </div>
               </div>
-              <div className="col-xs-6 col-sm-6 col-md-6 col-lg-4">
+              <div
+                className="col-xs-6 col-sm-6 col-md-6 col-lg-4"
+                style={{ display: "none" }}
+              >
                 <div className="panel panel-bd cardbox2">
                   <div className="panel-body bd-panel">
                     <div className="statistic-box">
@@ -1104,63 +1142,57 @@ useEffect(() => {
                 </div>
               </div> */}
             </div>
-            {localStorage.getItem("role") === "admin" || localStorage.getItem("role") === "GroupLeader"  ? (
-            <div className="row">
-            <div className="col-md-6   mob-left-right col-xs-12">
-              
-                      <div className="row">
-                        <div className="col-md-4 pd-top mobile-hids">
-                          <label htmlFor="lead_source">Team Performance </label>
-                        </div>
-                        <div className="col-md-8 mob-left-right col-xs-12">
-                        {localStorage.getItem("role") === "admin" || localStorage.getItem("role") === "GroupLeader"  ? (
-                          <div className="form-group">
-                            <select 
-                             onChange={handleGroupLeaderChange} 
-                             value={selectedGroupLeader}
-                              className="form-control"
-                              
-                            >
-                              <option value="">Select</option>
-                              {filteredAgents.length > 0 ? (
-                                filteredAgents.map((agent) => (
-                                  <option key={agent._id} value={agent._id}>
-                                    {agent.agent_name}
-                                  </option>
-                                ))
-                              ) : (
-                                <option disabled>No agents found</option>
-                              )}
-
-                              
-                            </select>
-                            <span className="text-danger ferror"> </span>
-                           
-                          </div>
-                           ) : null}
-                        </div>
-                      </div>
+            {localStorage.getItem("role") === "admin" ||
+            localStorage.getItem("role") === "GroupLeader" ? (
+              <div className="row">
+                <div className="col-md-6   mob-left-right col-xs-12">
+                  <div className="row">
+                    <div className="col-md-4 pd-top mobile-hids">
+                      <label htmlFor="lead_source">Team Performance </label>
                     </div>
-                    <div className="col-md-6   mob-left-right col-xs-12">
-
-                      <div className="row">
-                        
-                        <div className="col-md-8 mob-left-right col-xs-12">
-                        {localStorage.getItem("role") === "admin" || localStorage.getItem("role") === "GroupLeader" ? (
-                          <div className="form-group">
-                            
-                           
-                            {agentDetails.length > 0 ? (
-                                    <table>
-                                      <thead>
-                                        <tr>
-                                          <th>Username</th>
-                                          <th>Highest No of Calls</th>
-                                          <th>Total Time</th>
-                                          {/* <th>Average Time</th> */}
-                                        </tr>
-                                      </thead>
-                                      {/* <tbody>
+                    <div className="col-md-8 mob-left-right col-xs-12">
+                      {localStorage.getItem("role") === "admin" ||
+                      localStorage.getItem("role") === "GroupLeader" ? (
+                        <div className="form-group">
+                          <select
+                            onChange={handleGroupLeaderChange}
+                            value={selectedGroupLeader}
+                            className="form-control"
+                          >
+                            <option value="">Select</option>
+                            {filteredAgents.length > 0 ? (
+                              filteredAgents.map((agent) => (
+                                <option key={agent._id} value={agent._id}>
+                                  {agent.agent_name}
+                                </option>
+                              ))
+                            ) : (
+                              <option disabled>No agents found</option>
+                            )}
+                          </select>
+                          <span className="text-danger ferror"> </span>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-6   mob-left-right col-xs-12">
+                  <div className="row">
+                    <div className="col-md-8 mob-left-right col-xs-12">
+                      {localStorage.getItem("role") === "admin" ||
+                      localStorage.getItem("role") === "GroupLeader" ? (
+                        <div className="form-group">
+                          {agentDetails.length > 0 ? (
+                            <table>
+                              <thead>
+                                <tr>
+                                  <th>Username</th>
+                                  <th>Highest No of Calls</th>
+                                  <th>Total Time</th>
+                                  {/* <th>Average Time</th> */}
+                                </tr>
+                              </thead>
+                              {/* <tbody>
                                         {agentDetails.map((detail) => (
                                           <tr key={detail.user_id}>
                                             <td>{detail.username}</td>
@@ -1170,28 +1202,42 @@ useEffect(() => {
                                           </tr>
                                         ))}
                                       </tbody> */}
-                                      <tfoot>
-                                          <tr>
-                                            <td><strong>Total</strong></td>
-                                            <td>{agentDetails.reduce((acc, detail) => acc + detail.HigstNoOfCall, 0)}</td>
-                                            <td>{converTtime(agentDetails.reduce((acc, detail) => acc + detail.TotalTime, 0))}</td>
-                                            {/* <td>{(
+                              <tfoot>
+                                <tr>
+                                  <td>
+                                    <strong>Total</strong>
+                                  </td>
+                                  <td>
+                                    {agentDetails.reduce(
+                                      (acc, detail) =>
+                                        acc + detail.HigstNoOfCall,
+                                      0
+                                    )}
+                                  </td>
+                                  <td>
+                                    {converTtime(
+                                      agentDetails.reduce(
+                                        (acc, detail) => acc + detail.TotalTime,
+                                        0
+                                      )
+                                    )}
+                                  </td>
+                                  {/* <td>{(
                                               agentDetails.reduce((acc, detail) => acc + detail.AvrageTime, 0) / (agentDetails.length || 1)
                                             ).toFixed(2)}</td>  */}
-                                          </tr>
-                                        </tfoot>
-                                    </table>
-                                  ) : (
-                                    <p>No agent details available</p>
-                                  )}
-                          </div>
-                          ) : null}
-                              
+                                </tr>
+                              </tfoot>
+                            </table>
+                          ) : (
+                            <p>No agent details available</p>
+                          )}
                         </div>
-                      </div>
+                      ) : null}
                     </div>
-            </div>
-            ):null}
+                  </div>
+                </div>
+              </div>
+            ) : null}
             {/* /.row */}
             {/* Main row */}
 
@@ -1217,12 +1263,22 @@ useEffect(() => {
                   <div className="panel-heading ui-sortable-handle">
                     <div className="panel-title">
                       <h4>Leads Source Overview</h4>
-                      <Chart
-                        options={options}
-                        series={leadsourcedata1}
+                      {leadsourcedata1.length > 0 && leadsource.length > 0 && (
+                        <Chart
+                          options={{ labels: leadsource }}
+                          series={leadsourcedata1}
+                          // options={test_data.options}
+                          // series={test_data.series}
+                          type="pie"
+                          width="100%"
+                        />
+                      )}
+                      {/* <ApexCharts
+                        options={test_data.options}
+                        series={test_data.series}
                         type="pie"
                         width="100%"
-                      />
+                      ></ApexCharts> */}
                     </div>
                   </div>
                 </div>
@@ -1244,6 +1300,7 @@ useEffect(() => {
               <div
                 className="col-xs-12 col-sm-12 col-md-12 col-lg-12 pl-0  lobipanel-parent-sortable ui-sortable"
                 data-lobipanel-child-inner-id="JboVwpEyCD"
+                style={{ display: "none" }}
               >
                 <div
                   className="panel panel-bd lobidrag bg-white lobipanel lobipanel-sortable"
@@ -1330,12 +1387,15 @@ useEffect(() => {
                             <div className="d-flex"></div>
                           </div>
                         </li>
-                        {Detail?.map((Details, key) => {
-                          const converttime = (ffgfgf) => {
-                            const second = ffgfgf;
+                        {callLogs?.map((Details, key) => {
+                          if (!Details.user) {
+                            return null;
+                          }
+                          console.log("details", Details);
+                          const converttime = (second) => {
                             const hours = Math.floor(second / 3600);
                             const minutes = Math.floor((second % 3600) / 60);
-                            const remainingSeconds = second % 60;
+                            const remainingSeconds = Math.floor(second % 60);
                             const timeconverted =
                               hours +
                               "h " +
@@ -1367,7 +1427,7 @@ useEffect(() => {
                                 <div className="d-flex justify-content-between w-100 flex-wrap">
                                   <h6 className="mb-0 ms-3">
                                     {" "}
-                                    {Details?.username}
+                                    {Details?.user.agent_name}
                                   </h6>
                                   <div className="d-flex"></div>
                                 </div>
@@ -1378,14 +1438,14 @@ useEffect(() => {
                                       className="fa fa-phone"
                                       aria-hidden="true"
                                     ></i>{" "}
-                                    {Details?.HigstNoOfCall}{" "}
+                                    {Details?.number_of_calls}{" "}
                                   </h6>
                                   <div className="d-flex"></div>
                                 </div>
                                 <div className="d-flex  w-30">
                                   <h6 className="mb-0 ms-3">
                                     <span className="badge badge-primary light border-0">
-                                      {converttime(Details?.TotalTime)}
+                                      {converttime(Details?.duration)}
                                     </span>
                                   </h6>
                                   <div className="d-flex"></div>
@@ -1407,7 +1467,7 @@ useEffect(() => {
                                 <div className="d-flex justify-content-between w-100 flex-wrap">
                                   <h6 className="mb-0 ms-3">
                                     {" "}
-                                    {Details?.username} ({Details.role})
+                                    {Details?.user.agent_name} ({Details.role})
                                   </h6>
                                   <div className="d-flex"></div>
                                 </div>
@@ -1418,14 +1478,14 @@ useEffect(() => {
                                       className="fa fa-phone"
                                       aria-hidden="true"
                                     ></i>{" "}
-                                   {Details?.HigstNoOfCall}{" "}
+                                    {Details?.number_of_calls}{" "}
                                   </h6>
                                   <div className="d-flex"></div>
                                 </div>
                                 <div className="d-flex  w-30">
                                   <h6 className="mb-0 ms-3">
                                     <span className="badge badge-primary light border-0">
-                                      {converttime(Details?.TotalTime)}
+                                      {converttime(Details?.duration)}
                                     </span>
                                   </h6>
                                   <div className="d-flex"></div>
@@ -1441,7 +1501,10 @@ useEffect(() => {
                   </div>
                 </div>
               </div>
-              <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+              <div
+                className="col-xs-12 col-sm-12 col-md-6 col-lg-6"
+                style={{ display: "none" }}
+              >
                 <div className="panel panel-bd  bg-white">
                   <div className="panel-heading">
                     <div className="panel-title   d-flex justify-content-between">
@@ -1474,7 +1537,7 @@ useEffect(() => {
                     </div>
                   </div>
 
-              <div className="panel-body personal">
+                  <div className="panel-body personal">
                     <div className="card-bodyes  ">
                       <ul className="p-0 m-0">
                         <li className="mb-1 d-flex justify-content-between align-items-center">
@@ -1503,7 +1566,7 @@ useEffect(() => {
                                 <h6 className="mb-0 ms-3">
                                   {" "}
                                   <span className="badge badge-primaryess light border-0">
-                                    {LeadCount1?.Value} 
+                                    {LeadCount1?.Value}
                                   </span>
                                 </h6>
                                 <div className="d-flex"></div>
