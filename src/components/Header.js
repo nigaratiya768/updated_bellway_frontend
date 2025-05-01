@@ -192,18 +192,12 @@ function Header() {
         </div> */}
 
         <ul className="navbar-nav ml-auto">
-          <li className="nav-item dropdown">
-            <Link
-              className="nav-link"
-              data-toggle="dropdown"
-              to="/notification"
-            >
+          <li className="nav-item ">
+            <Link className="nav-link" to="/notification">
               <i className="far fa-bell pe-7s-bell" />
 
               {notificationCount > 0 && (
-                <span className="badge badge-warning navbar-badge">
-                  {notificationCount}
-                </span>
+                <span className="badge badge-warning navbar-badge"></span>
               )}
             </Link>
             {/* <div className="dropdown-menu dropdown-menu-lg dropdown-menu-right">
