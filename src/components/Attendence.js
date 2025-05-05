@@ -100,7 +100,7 @@ function Attendence() {
             }}
             style={{ backgroundColor: "green" }}
           >
-            approved
+            approve
           </button>{" "}
           <button
             className="btn btn-danger"
