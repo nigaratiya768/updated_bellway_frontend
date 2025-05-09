@@ -13,6 +13,7 @@ import { Bar } from "react-chartjs-2";
 import axios from "axios";
 const apiUrl = process.env.REACT_APP_API_URL;
 const DBuUrl = process.env.REACT_APP_DB_URL;
+const baseUrl = process.env.REACT_APP_BASE_URL;
 
 function Productservices() {
   const { ProductService } = useSelector((state) => state.ProductService);
@@ -29,24 +30,51 @@ function Productservices() {
 
   ///// Product And Service Add
   const [data, setData] = useState({});
+  const [file, setFile] = useState(null);
   const newdata = (e) => {
     setData({ ...data, [e.target.name]: e.target.value });
   };
   const productsubmit = async (e) => {
     e.preventDefault();
     if (data?._id) {
-      const aaaa = await dispatch(UpdateProductService(data));
-      if (aaaa.payload.success === true) {
-        toast.success(aaaa.payload.message);
+      // `${apiUrl}/update_product_service/${data?._id}`,
+      const formData = new FormData();
+      formData.append("product_service_name", data.product_service_name);
+      formData.append("set_up_fee", data.set_up_fee);
+      formData.append("payment", data.payment);
+      formData.append("file", file);
+      //formData.append("name", file.name);
+      const aaaa = await axios.put(
+        `${apiUrl}/update_product_service/${data?._id}`,
+        formData
+        //{ headers: { "Content-Type": "multipart/form_data" } }
+      );
+      // const aaaa = await dispatch(UpdateProductService(data));
+      if (aaaa.data.success === true) {
+        toast.success(aaaa.data.message);
+        window.location.href = "/productservices";
       } else {
-        toast.warn(aaaa.payload.message);
+        toast.warn(aaaa.data.message);
       }
     } else {
-      const aaaa = await dispatch(addProductService(data));
-      if (aaaa.payload.success === true) {
-        toast.success(aaaa.payload.message);
+      //`${apiUrl}/add_product_service/`
+      const formData = new FormData();
+      formData.append("product_service_name", data.product_service_name);
+      formData.append("set_up_fee", data.set_up_fee);
+      formData.append("payment", data.payment);
+      formData.append("file", file);
+      //formData.append("name", file.name);
+      const aaaa = await axios.post(
+        `${apiUrl}/add_product_service`,
+        formData
+        //{ headers: { "Content-Type": "multipart/form_data" } }
+      );
+      // const aaaa = await dispatch(UpdateProductService(data));
+      if (aaaa.data.success === true) {
+        toast.success(aaaa.data.message);
+        window.location.href = "/productservices";
       } else {
-        toast.warn(aaaa.payload.message);
+        toast.warn(aaaa.data.message);
       }
     }
   };
@@ -220,6 +248,17 @@ function Productservices() {
                                               aria-hidden="true"
                                             ></i>
                                           </button>
+                                          <a
+                                            target="_blank"
+                                            download
+                                            href={`${baseUrl}/uploads/${ProductService1?.file_path}`}
+                                            className="btn btn-info btn-xs"
+                                          >
+                                            <i
+                                              className="fa fa-download"
+                                              aria-hidden="true"
+                                            ></i>
+                                          </a>
                                         </td>
                                       </tr>
                                     );
@@ -290,6 +329,24 @@ function Productservices() {
                                       className="form-control"
                                       placeholder="Payment"
                                       name="payment"
+                                      defaultValue=""
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="col-md-4 pd-top">
+                                  <lable>brochure</lable>
+                                </div>
+                                <div className="col-md-8">
+                                  <div className="form-group">
+                                    <input
+                                      type="file"
+                                      onChange={(e) => {
+                                        setFile(e.target.files[0]);
+                                      }}
+                                      className="form-control"
+                                      placeholder="brochure"
+                                      name="file"
                                       defaultValue=""
                                     />
                                   </div>

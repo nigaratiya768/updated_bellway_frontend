@@ -12,6 +12,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 // import ReactHTMLTableToExcel from 'react-html-table-to-excel'; // Import the library
 import { addfollowup, getAllFollowup } from "../../features/followupSlice";
+import { NavLink } from "react-router-dom";
 export const ApprovalTable = ({
   sendDataToParent,
   isHotLead = false,
@@ -31,6 +32,7 @@ export const ApprovalTable = ({
   const { Statusdata } = useSelector((state) => state.StatusData);
   const apiUrl = process.env.REACT_APP_API_URL;
   const DBuUrl = process.env.REACT_APP_DB_URL;
+  const baseUrl = process.env.REACT_APP_BASE_URL;
   const [selectedRow, setSelectedRow] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dataa, setData] = useState({
@@ -718,6 +720,23 @@ export const ApprovalTable = ({
                 : ""}
             </span>
           </a>
+          <NavLink
+            to={`/capturePhoto?lead_id=${row._id}`}
+            className={"btn btn-secondary"}
+            style={{ marginLeft: 10 }}
+          >
+            <i className="fa fa-camera" aria-hidden="true"></i>
+          </NavLink>
+          <a
+            target="_blank"
+            download
+            href={`${baseUrl}/uploads/${row._id}.png`}
+            className={"btn btn-secondary success"}
+            style={{ marginLeft: 10 }}
+          >
+            <i className="fa fa-download" aria-hidden="true"></i>
+          </a>
+
           {/* <span
             onClick={() =>
               StartCall(
@@ -822,25 +841,30 @@ export const ApprovalTable = ({
         const actionButtonDisabled = !isApprovedByTL || isUserRole;
 
         return (
-          <a href={`/followupleads/${row?._id}`}>
-            <button className="btn btn-success" disabled={actionButtonDisabled}>
-              <i className="fa fa-pencil-square" aria-hidden="true"></i>
-            </button>
-            <span
-              className={`badge ${getStatusBadgeClass(
-                row?.status_details[0]?.status_name
-              )}`}
-              style={{ marginLeft: "10px" }}
-            >
-              {row?.status_details[0]?.status_name === "Call Back & Hot Lead"
-                ? "Hot"
-                : row?.status_details[0]?.status_name === "Call Back"
-                ? "C"
-                : row?.status_details[0]?.status_name === "Meeting"
-                ? "M"
-                : ""}
-            </span>
-          </a>
+          <div>
+            <a href={`/followupleads/${row?._id}`}>
+              <button
+                className="btn btn-success"
+                disabled={actionButtonDisabled}
+              >
+                <i className="fa fa-pencil-square" aria-hidden="true"></i>
+              </button>
+              <span
+                className={`badge ${getStatusBadgeClass(
+                  row?.status_details[0]?.status_name
+                )}`}
+                style={{ marginLeft: "10px" }}
+              >
+                {row?.status_details[0]?.status_name === "Call Back & Hot Lead"
+                  ? "Hot"
+                  : row?.status_details[0]?.status_name === "Call Back"
+                  ? "C"
+                  : row?.status_details[0]?.status_name === "Meeting"
+                  ? "M"
+                  : ""}
+              </span>
+            </a>
+          </div>
         );
       },
       sortable: true,

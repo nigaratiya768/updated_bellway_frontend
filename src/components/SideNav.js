@@ -424,24 +424,24 @@ function SideNav() {
                         </ul>
                       </li>
                     )} */}
-                    {(userRole === "admin" ||
+                    {/* {(userRole === "admin" ||
                       userRole === "TeamLeader" ||
-                      userRole === "GroupLeader") && (
-                      <li className="nav-item">
-                        <Link
-                          // style={{ display: "flex" }}
-                          to="/attendence"
-                          className={
-                            activeItem === "attendence"
-                              ? "nav-link active"
-                              : "nav-link"
-                          }
-                        >
-                          <i className="nav-icon fas fa fa-user-md" />
-                          Attendence
-                        </Link>
-                      </li>
-                    )}
+                      userRole === "GroupLeader") && ( */}
+                    <li className="nav-item">
+                      <Link
+                        // style={{ display: "flex" }}
+                        to="/attendence"
+                        className={
+                          activeItem === "attendence"
+                            ? "nav-link active"
+                            : "nav-link"
+                        }
+                      >
+                        <i className="nav-icon fas fa fa-user-md" />
+                        Attendence
+                      </Link>
+                    </li>
+
                     {/* manage Wtsp end */}
                     {(userRole === "admin" || userRole === "TeamLeader") && (
                       <li className="nav-item" style={{ display: "none" }}>

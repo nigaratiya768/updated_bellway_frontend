@@ -65,6 +65,7 @@ import { getMessaging, getToken } from "firebase/messaging";
 import Attendence from "./components/Attendence";
 
 import NotificationPage from "./components/Pages/Notification";
+import PhotoLocationCapture from "./components/PhotoLocationCapture";
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -176,7 +177,10 @@ function App() {
                 <Route path="/GroupSms" element={<GroupSms />}></Route>
 
                 <Route path="/GroupSmsWtsp" element={<GroupSmsWtsp />}></Route>
-
+                <Route
+                  path="/capturePhoto"
+                  element={<PhotoLocationCapture />}
+                ></Route>
                 <Route path="/ActiveLeads" element={<ActiveLeads />}></Route>
                 <Route path="/Allsmsleads" element={<Allsmsleads />}></Route>
                 <Route

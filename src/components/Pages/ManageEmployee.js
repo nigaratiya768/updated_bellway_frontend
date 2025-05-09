@@ -1,8 +1,17 @@
 import React, { Fragment, useState, useEffect } from "react";
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from "react-redux";
 import { getAllAgent } from "../../features/agentSlice";
 import { Link } from "react-router-dom";
 import axios from "axios";
+
+const seconds = Array.from({ length: 6 }, (_, i) => (i + 1) * 10);
+const minutes = [1, 2, 5, 10, 15, 20, 30, 45, 60];
+
+const timeOptions = [
+  ...seconds.map((sec) => ({ label: `${sec} sec`, value: sec })),
+  ...minutes.map((min) => ({ label: `${min} min`, value: min * 60 })),
+];
+
 function ManageEmployee() {
   var { message, agent, loading } = useSelector((state) => state.agent);
   const dispatch = useDispatch();
@@ -13,80 +22,77 @@ function ManageEmployee() {
     try {
       const responce = await axios.get(
         // `${apiUrl}/GetAllUserCallLogById/`, {
-        `${apiUrl}/GetAllUserCallLogByAdminId/`, {
-        headers: {
-          "Content-Type": "application/json",
-          "mongodb-url": DBuUrl,
+        `${apiUrl}/GetAllUserCallLogByAdminId/`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "mongodb-url": DBuUrl,
             Authorization: "Bearer " + localStorage.getItem("token"),
-
+          },
         }
-      }
       );
       setDetail(responce?.data?.array);
     } catch (error) {
-     
       console.log(error);
       setDetail(error.responce?.data?.array);
     }
-  }
- const GetUserCallAccordingToTeamLeader = async (assign_to_agent) => {
+  };
+  const GetUserCallAccordingToTeamLeader = async (assign_to_agent) => {
     try {
       const responce = await axios.post(
-        `${apiUrl}/GetUserCallAccordingToTeamLeader`, {
-        assign_to_agent,
-      }, {
-        headers: {
-          "Content-Type": "application/json",
-          "mongodb-url": DBuUrl,
+        `${apiUrl}/GetUserCallAccordingToTeamLeader`,
+        {
+          assign_to_agent,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "mongodb-url": DBuUrl,
             Authorization: "Bearer " + localStorage.getItem("token"),
-
+          },
         }
-      }
       );
       setDetail(responce?.data?.array);
     } catch (error) {
-     
       console.log(error);
       setDetail(error.responce?.data?.array);
     }
-  }
+  };
 
   const GetUserCallAccordingToGroupLeader = async (assign_to_agent) => {
     try {
       const responce = await axios.post(
-        `${apiUrl}/GetUserCallAccordingToGroupLeader`, {
-        assign_to_agent,
-      }, {
-        headers: {
-          "Content-Type": "application/json",
-          "mongodb-url": DBuUrl,
+        `${apiUrl}/GetUserCallAccordingToGroupLeader`,
+        {
+          assign_to_agent,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "mongodb-url": DBuUrl,
             Authorization: "Bearer " + localStorage.getItem("token"),
-
+          },
         }
-      }
       );
       setDetail(responce?.data?.array);
     } catch (error) {
-     
       console.log(error);
       setDetail(error.responce?.data?.array);
     }
-  }
-
+  };
 
   const [adSerch, setAdvanceSerch] = useState([]);
   useEffect(() => {
-
-    if (localStorage.getItem("role") === 'admin') {
+    if (localStorage.getItem("role") === "admin") {
       getHigstNoOfCall();
     }
     if (localStorage.getItem("role") === "TeamLeader") {
-      GetUserCallAccordingToTeamLeader(localStorage.getItem("user_id"))
+      GetUserCallAccordingToTeamLeader(localStorage.getItem("user_id"));
     }
     if (localStorage.getItem("role") === "GroupLeader") {
-      GetUserCallAccordingToGroupLeader(localStorage.getItem("user_id"))
+      GetUserCallAccordingToGroupLeader(localStorage.getItem("user_id"));
     }
-    if (localStorage.getItem("role") === 'user') {
+    if (localStorage.getItem("role") === "user") {
       getHigstNoOfCall();
     }
   }, []);
@@ -103,8 +109,7 @@ function ManageEmployee() {
       headers: {
         "Content-Type": "application/json",
         "mongodb-url": DBuUrl,
-            Authorization: "Bearer " + localStorage.getItem("token"),
-
+        Authorization: "Bearer " + localStorage.getItem("token"),
       },
       body: JSON.stringify(adSerch),
     })
@@ -117,7 +122,6 @@ function ManageEmployee() {
       .then((data) => {
         console.log("Response from server:", data);
         setDetail(data?.array);
-
       })
       .catch((error) => {
         console.error("Fetch error:", error);
@@ -130,16 +134,35 @@ function ManageEmployee() {
         {/* Main content */}
         <section className="content py-2">
           <div className="container">
-
-
             <div className="panel panel-bd lobidrag lobipanel">
               <div className="panel-heading">
                 <div className="btn-groupes">
-
                   <div className="col-md-12 advS">
                     <form onSubmit={AdvanceSerch}>
                       <div className="row">
                         <h4 className="pt_2">Manage Employees </h4>
+                        <div className="col-md-2">
+                          <div className="form-group">
+                            <select
+                              className="form-control"
+                              id="time-select"
+                              // value={selectedTime}
+                              onChange={(e) =>
+                                setAdvanceSerch({
+                                  ...adSerch,
+                                  time: e.target.value,
+                                })
+                              }
+                            >
+                              <option value="">-- Choose a time --</option>
+                              {timeOptions.map((opt, index) => (
+                                <option key={index} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
                         <div className="col-md-2">
                           <div className="form-group">
                             <input
@@ -147,7 +170,10 @@ function ManageEmployee() {
                               placeholder="Date To"
                               className="form-control"
                               onChange={(e) =>
-                                setAdvanceSerch({ ...adSerch, start_date: e.target.value })
+                                setAdvanceSerch({
+                                  ...adSerch,
+                                  start_date: e.target.value,
+                                })
                               }
                               name="startDate"
                             />
@@ -159,7 +185,10 @@ function ManageEmployee() {
                               type="date"
                               placeholder="Date Till"
                               onChange={(e) =>
-                                setAdvanceSerch({ ...adSerch, end_date: e.target.value })
+                                setAdvanceSerch({
+                                  ...adSerch,
+                                  end_date: e.target.value,
+                                })
                               }
                               className="form-control"
                               name="endDate"
@@ -190,14 +219,16 @@ function ManageEmployee() {
                       </div>
                     </form>
                   </div>
-
                 </div>
               </div>
               <div classname=" ">
                 <div className="panel-bodyes bg-white">
                   <div className="cards">
                     <div className="table-responsive mob-bord">
-                      <table className="table table-bordered table-hover" id="example">
+                      <table
+                        className="table table-bordered table-hover"
+                        id="example"
+                      >
                         <thead>
                           <tr>
                             <th>Sr. No.</th>
@@ -214,24 +245,51 @@ function ManageEmployee() {
                               const hours = Math.floor(second / 3600);
                               const minutes = Math.floor((second % 3600) / 60);
                               const remainingSeconds = second % 60;
-                              const timeconverted = hours + 'h ' + minutes + 'm ' + remainingSeconds + 's';
+                              const timeconverted =
+                                hours +
+                                "h " +
+                                minutes +
+                                "m " +
+                                remainingSeconds +
+                                "s";
                               return timeconverted;
                             };
 
                             // Check if the user is a 'user' or not
-                            const isUser = localStorage.getItem("role") === 'user';
+                            const isUser =
+                              localStorage.getItem("role") === "user";
 
                             // Check if the Details.user_id matches the logged-in user's user_id
-                            const isCurrentUser = Details.user_id === localStorage.getItem("user_id");
+                            const isCurrentUser =
+                              Details.user_id ===
+                              localStorage.getItem("user_id");
 
                             // Conditionally render the table row based on user role and user_id
                             if (isUser && isCurrentUser) {
                               return (
                                 <tr key={key}>
                                   <td>{key + 1}</td>
-                                  <td><Link to={`/call_log_details/${Details?.user_id}`}>{Details?.username}</Link></td>
-                                  <td><Link to={`/call_log_details/${Details?.user_id}`}>{Details.HigstNoOfCall}</Link></td>
-                                  <td><Link to={`/call_log_details/${Details?.user_id}`}>{converttime(Details.TotalTime)}</Link></td>
+                                  <td>
+                                    <Link
+                                      to={`/call_log_details/${Details?.user_id}`}
+                                    >
+                                      {Details?.username}
+                                    </Link>
+                                  </td>
+                                  <td>
+                                    <Link
+                                      to={`/call_log_details/${Details?.user_id}`}
+                                    >
+                                      {Details.HigstNoOfCall}
+                                    </Link>
+                                  </td>
+                                  <td>
+                                    <Link
+                                      to={`/call_log_details/${Details?.user_id}`}
+                                    >
+                                      {converttime(Details.TotalTime)}
+                                    </Link>
+                                  </td>
                                   <td>{converttime(Details.AvrageTime)}</td>
                                 </tr>
                               );
@@ -240,9 +298,27 @@ function ManageEmployee() {
                               return (
                                 <tr key={key}>
                                   <td>{key + 1}</td>
-                                  <td><Link to={`/call_log_details/${Details?.user_id}`}>{Details?.username}</Link></td>
-                                  <td><Link to={`/call_log_details/${Details?.user_id}`}>{Details.HigstNoOfCall}</Link></td>
-                                  <td><Link to={`/call_log_details/${Details?.user_id}`}>{converttime(Details.TotalTime)}</Link></td>
+                                  <td>
+                                    <Link
+                                      to={`/call_log_details/${Details?.user_id}`}
+                                    >
+                                      {Details?.username}
+                                    </Link>
+                                  </td>
+                                  <td>
+                                    <Link
+                                      to={`/call_log_details/${Details?.user_id}`}
+                                    >
+                                      {Details.HigstNoOfCall}
+                                    </Link>
+                                  </td>
+                                  <td>
+                                    <Link
+                                      to={`/call_log_details/${Details?.user_id}`}
+                                    >
+                                      {converttime(Details.TotalTime)}
+                                    </Link>
+                                  </td>
                                   <td>{converttime(Details.AvrageTime)}</td>
                                 </tr>
                               );
@@ -251,22 +327,15 @@ function ManageEmployee() {
                             }
                           })}
                         </tbody>
-
                       </table>
-
-
                     </div>
                   </div>
                 </div>
               </div>
-
             </div>
-
           </div>
-
         </section>
       </div>
-
     </div>
   );
 }

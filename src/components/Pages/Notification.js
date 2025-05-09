@@ -36,7 +36,19 @@ function NotificationPage() {
     },
     {
       name: "Description",
-      selector: (row) => row?.description,
+      selector: (row) => (
+        <p
+          title={row?.description}
+          style={{
+            width: "300px" /* Adjust as needed */,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {row?.description}
+        </p>
+      ),
     },
 
     {

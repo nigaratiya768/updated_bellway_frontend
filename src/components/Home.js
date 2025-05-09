@@ -1348,7 +1348,7 @@ function Home() {
                     <div className="panel-title   d-flex justify-content-between">
                       <div className="card-title mb-0">
                         <h5 className="mb-0"> Employee Report</h5>
-                        <p className="since_list">Yesterday</p>
+                        {/* <p className="since_list">Yesterday</p> */}
                       </div>
                       <div className="value_serve">
                         <div className="dropdown">
@@ -1427,7 +1427,8 @@ function Home() {
                                 <div className="d-flex justify-content-between w-100 flex-wrap">
                                   <h6 className="mb-0 ms-3">
                                     {" "}
-                                    {Details?.user.agent_name}
+                                    {Details?.user.agent_name}(
+                                    {Details?.user.role})
                                   </h6>
                                   <div className="d-flex"></div>
                                 </div>
@@ -1467,7 +1468,8 @@ function Home() {
                                 <div className="d-flex justify-content-between w-100 flex-wrap">
                                   <h6 className="mb-0 ms-3">
                                     {" "}
-                                    {Details?.user.agent_name} ({Details.role})
+                                    {Details?.user.agent_name} (
+                                    {Details?.user.role})
                                   </h6>
                                   <div className="d-flex"></div>
                                 </div>
